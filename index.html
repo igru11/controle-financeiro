@@ -8,9 +8,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
 </head>
-<body class="bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 min-h-screen text-slate-100 font-sans antialiased flex items-center justify-center p-4">
+<body class="bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 min-h-screen text-slate-100 font-sans antialiased flex items-center justify-center p-3 md:p-4">
 
-    <div id="auth-container" class="w-full max-w-md bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-700/50 space-y-6">
+    <!-- 1. TELA DE AUTENTICAÇÃO -->
+    <div id="auth-container" class="w-full max-w-md bg-slate-900/80 backdrop-blur-xl p-6 md:p-8 rounded-2xl shadow-2xl border border-slate-700/50 space-y-6">
         <div class="text-center space-y-2">
             <h2 class="text-3xl font-extrabold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Finanças Pro</h2>
             <p class="text-sm text-slate-400" id="auth-subtitle">Gerenciamento por período e cartão de crédito</p>
@@ -30,72 +31,90 @@
         </form>
     </div>
 
-    <div id="app-dashboard" class="hidden w-full max-w-6xl self-start my-4 md:my-8 space-y-6">
+    <!-- 2. DASHBOARD PRINCIPAL -->
+    <div id="app-dashboard" class="hidden w-full max-w-6xl self-start my-2 md:my-8 space-y-4 md:space-y-6">
         
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 gap-4 shadow-xl">
+        <!-- CABEÇALHO -->
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900/60 backdrop-blur-md p-4 md:p-6 rounded-2xl border border-slate-800 gap-4 shadow-xl">
             <div>
-                <h1 class="text-xl font-bold tracking-tight">💰 Sistema Financeiro Inteligente</h1>
+                <h1 class="text-lg md:text-xl font-bold tracking-tight">💰 Sistema Financeiro</h1>
                 <p class="text-xs text-slate-400">Olá, <span id="user-display-name" class="text-indigo-400">Usuário</span></p>
             </div>
-            <div class="flex items-center gap-3 w-full md:w-auto">
-                <div class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 flex items-center gap-2">
-                    <label class="text-xs text-slate-400 uppercase font-semibold">Mês de Análise:</label>
-                    <input type="month" id="filtro-periodo" onchange="atualizarTudo()" class="bg-transparent text-white font-bold focus:outline-none">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                <div class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 flex items-center justify-between sm:justify-start gap-2">
+                    <label class="text-[10px] md:text-xs text-slate-400 uppercase font-semibold">Mês:</label>
+                    <input type="month" id="filtro-periodo" onchange="atualizarTudo()" class="bg-transparent text-white font-bold focus:outline-none text-sm cursor-pointer">
                 </div>
-                <button type="button" onclick="logout()" class="bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-400 px-4 py-2 rounded-xl text-sm font-medium border border-slate-700/50 transition-colors cursor-pointer z-50">Sair</button>
+                <button type="button" onclick="logout()" class="bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-400 px-4 py-2 rounded-xl text-sm font-medium border border-slate-700/50 transition-colors text-center">Sair</button>
             </div>
         </header>
 
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Saldo do Período</p>
-                <p id="card-saldo" class="text-2xl font-bold mt-2">R$ 0,00</p>
+        <!-- CARDS DE RESUMO -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            <div class="bg-slate-900/60 border border-slate-800 p-4 md:p-5 rounded-2xl">
+                <p class="text-[10px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">Saldo Geral</p>
+                <p id="card-saldo" class="text-lg md:text-2xl font-bold mt-1 md:mt-2">R$ 0,00</p>
             </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl border-l-4 border-l-emerald-500">
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Receitas</p>
-                <p id="card-receitas" class="text-2xl font-bold mt-2 text-emerald-400">R$ 0,00</p>
+            <div class="bg-slate-900/60 border border-slate-800 p-4 md:p-5 rounded-2xl border-l-4 border-l-emerald-500">
+                <p class="text-[10px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">Receitas</p>
+                <p id="card-receitas" class="text-lg md:text-2xl font-bold mt-1 md:mt-2 text-emerald-400">R$ 0,00</p>
             </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl border-l-4 border-l-amber-500">
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Despesas Fixas</p>
-                <p id="card-fixas" class="text-2xl font-bold mt-2 text-amber-400">R$ 0,00</p>
+            <div class="bg-slate-900/60 border border-slate-800 p-4 md:p-5 rounded-2xl border-l-4 border-l-amber-500">
+                <p class="text-[10px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">Fixas</p>
+                <p id="card-fixas" class="text-lg md:text-2xl font-bold mt-1 md:mt-2 text-amber-400">R$ 0,00</p>
             </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl border-l-4 border-l-rose-500">
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Despesas Variáveis (Parcelas)</p>
-                <p id="card-variaveis" class="text-2xl font-bold mt-2 text-rose-400">R$ 0,00</p>
+            <div class="bg-slate-900/60 border border-slate-800 p-4 md:p-5 rounded-2xl border-l-4 border-l-rose-500">
+                <p class="text-[10px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider">Variáveis</p>
+                <p id="card-variaveis" class="text-lg md:text-2xl font-bold mt-1 md:mt-2 text-rose-400">R$ 0,00</p>
             </div>
         </section>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- CENTRAL DE CADASTROS -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
             
-            <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
-                <h2 class="text-sm font-bold text-indigo-400 uppercase tracking-wider">💳 Meus Cartões de Crédito</h2>
+            <!-- MEUS CARTÕES -->
+            <section class="bg-slate-900/60 p-5 md:p-6 rounded-2xl border border-slate-800 space-y-4">
+                <h2 class="text-xs md:text-sm font-bold text-indigo-400 uppercase tracking-wider">💳 Meus Cartões de Crédito</h2>
                 <form id="form-cartao" onsubmit="salvarCartao(event)" class="space-y-2">
                     <input type="text" id="cartao-nome" placeholder="Ex: Nubank" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
                     <input type="number" id="cartao-vencimento" placeholder="Dia de Vencimento (1 a 31)" required min="1" max="31" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium p-2 rounded-xl text-xs">Cadastrar Cartão</button>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium p-2.5 rounded-xl text-xs">Cadastrar Cartão</button>
                 </form>
-                <div id="lista-cartoes" class="text-xs text-slate-400 space-y-1 divide-y divide-slate-800"></div>
+                <div id="lista-cartoes" class="text-xs text-slate-400 space-y-1 divide-y divide-slate-800 max-h-32 overflow-y-auto pr-1"></div>
             </section>
 
-            <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
-                <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider">📈 Nova Receita para o Período</h2>
+            <!-- NOVA RECEITA AVANÇADA (RECORRENTE OU ÚNICA) -->
+            <section class="bg-slate-900/60 p-5 md:p-6 rounded-2xl border border-slate-800 space-y-4">
+                <h2 class="text-xs md:text-sm font-bold text-emerald-400 uppercase tracking-wider">📈 Nova Receita Avançada</h2>
                 <form id="form-receita" onsubmit="salvarReceita(event)" class="space-y-2">
-                    <input type="text" id="rec-desc" placeholder="Ex: Salário" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
-                    <input type="number" id="rec-valor" step="0.01" placeholder="Valor (R$)" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
-                    <input type="text" id="rec-cat" placeholder="Ex: Empresa" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium p-2 rounded-xl text-xs">Adicionar Receita</button>
+                    <input type="text" id="rec-desc" placeholder="Ex: Salário ou Freelance" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+                    <input type="number" id="rec-valor" step="0.01" placeholder="Valor Mensal (R$)" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+                    <input type="text" id="rec-cat" placeholder="Ex: Trabalho" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+                    
+                    <select id="rec-tipo" onchange="ajustarCamposReceita()" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300">
+                        <option value="unica">Receita Única (Apenas este período)</option>
+                        <option value="recorrente">Receita Recorrente (Vários Meses)</option>
+                    </select>
+
+                    <div id="wrapper-meses-receita" class="hidden flex items-center gap-2 border border-slate-800 p-2 rounded-xl bg-slate-950/40">
+                        <label class="text-[10px] uppercase text-slate-500 font-bold whitespace-nowrap">Qtd Meses:</label>
+                        <input type="number" id="rec-meses" value="1" min="1" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-white">
+                    </div>
+
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium p-2.5 rounded-xl text-xs">Adicionar Receita</button>
                 </form>
             </section>
 
-            <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
-                <h2 class="text-sm font-bold text-rose-400 uppercase tracking-wider">📉 Nova Despesa Avançada</h2>
+            <!-- DESPESA AVANÇADA -->
+            <section class="bg-slate-900/60 p-5 md:p-6 rounded-2xl border border-slate-800 space-y-4">
+                <h2 class="text-xs md:text-sm font-bold text-rose-400 uppercase tracking-wider">📉 Nova Despesa Avançada</h2>
                 <form id="form-despesa" onsubmit="salvarDespesa(event)" class="space-y-2">
                     <input type="text" id="des-desc" placeholder="Ex: Internet ou Aluguel" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
                     <input type="number" id="des-valor" step="0.01" placeholder="Valor (R$)" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
                     <input type="text" id="des-cat" placeholder="Ex: Moradia" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
                     
                     <select id="des-tipo" onchange="ajustarCamposDespesa()" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300">
-                        <option value="variavel">Despesa Variável (Eventual ou Parcelada)</option>
+                        <option value="variavel">Despesa Variável (Eventual/Parcelada)</option>
                         <option value="fixa">Despesa Fixa (Gera próximos 12 meses)</option>
                     </select>
 
@@ -105,6 +124,7 @@
                         <option value="empresa_parcelado">🏢 Parcelado pela Empresa</option>
                     </select>
 
+                    <!-- Configurações Dinâmicas -->
                     <div id="wrapper-opcoes-avancadas" class="hidden space-y-2 border border-slate-800 p-2 rounded-xl bg-slate-950/40">
                         <div id="wrapper-cartao">
                             <select id="des-cartao" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300">
@@ -117,20 +137,42 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-medium p-2 rounded-xl text-xs">Registrar Despesa</button>
+                    <button type="submit" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-medium p-2.5 rounded-xl text-xs">Registrar Despesa</button>
                 </form>
             </section>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Entradas do Período</h3>
-                <div class="overflow-x-auto"><table class="w-full text-left text-xs"><tbody id="tabela-receitas" class="divide-y divide-slate-800"></tbody></table></div>
+        <!-- EXTRATOS DO PERÍODO SELECIONADO -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <section class="bg-slate-900/60 p-4 md:p-6 rounded-2xl border border-slate-800">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Entradas do Período</h3>
+                <div id="container-lista-receitas" class="space-y-2 md:space-y-0 md:divide-y md:divide-slate-800"></div>
             </section>
-            <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Saídas do Período</h3>
-                <div class="overflow-x-auto"><table class="w-full text-left text-xs"><tbody id="tabela-despesas" class="divide-y divide-slate-800"></tbody></table></div>
+            <section class="bg-slate-900/60 p-4 md:p-6 rounded-2xl border border-slate-800">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Saídas do Período</h3>
+                <div id="container-lista-despesas" class="space-y-2 md:space-y-0 md:divide-y md:divide-slate-800"></div>
             </section>
+        </div>
+    </div>
+
+    <!-- MODAL CUSTOMIZADO E DINÂMICO PARA EDIÇÃO DE VALOR -->
+    <div id="custom-modal-edit" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4 scale-95 transition-transform duration-300">
+            <div class="flex items-center gap-3">
+                <div id="modal-edit-icon" class="bg-indigo-500/10 p-2.5 rounded-xl text-indigo-400">✏️</div>
+                <div>
+                    <h4 id="modal-edit-titulo" class="font-bold text-slate-100 text-sm">Editar Registro</h4>
+                    <p class="text-[11px] text-slate-400">A alteração afetará apenas este mês.</p>
+                </div>
+            </div>
+            <div class="space-y-1">
+                <label class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Novo valor (R$)</label>
+                <input type="number" id="modal-edit-input" step="0.01" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none focus:border-indigo-500 transition-colors" placeholder="0,00">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="fecharModalEdicao()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium py-2.5 rounded-xl transition">Cancelar</button>
+                <button id="modal-edit-btn-salvar" class="w-1/2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/20">Salvar Alteração</button>
+            </div>
         </div>
     </div>
 
@@ -138,6 +180,7 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let modoAuth = 'login';
         let listaGlobalCartoes = [];
+        let itemSendoEditado = { id: null, tipoTabela: '' };
 
         const hoje = new Date();
         const mesAtualStr = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
@@ -157,6 +200,13 @@
                 mostrarLogin();
             }
         });
+
+        function ajustarCamposReceita() {
+            const tipo = document.getElementById('rec-tipo').value;
+            const wrapper = document.getElementById('wrapper-meses-receita');
+            if (tipo === 'recorrente') wrapper.classList.remove('hidden');
+            else wrapper.classList.add('hidden');
+        }
 
         function ajustarCamposDespesa() {
             const tipo = document.getElementById('des-tipo').value;
@@ -193,7 +243,7 @@
                 listaDiv.innerHTML = '';
                 listaGlobalCartoes.forEach(c => {
                     select.innerHTML += `<option value="${c.id}">${c.nome} (Venc. dia ${c.dia_vencimento})</option>`;
-                    listaDiv.innerHTML += `<div class="py-1 flex justify-between"><span>💳 ${c.nome}</span><span class="text-slate-500">Vencimento dia ${c.dia_vencimento}</span></div>`;
+                    listaDiv.innerHTML += `<div class="py-1.5 flex justify-between text-xs"><span>💳 ${c.nome}</span><span class="text-slate-500">Venc. dia ${c.dia_vencimento}</span></div>`;
                 });
             } catch (err) { console.error(err); }
         }
@@ -214,22 +264,42 @@
         async function salvarReceita(event) {
             event.preventDefault();
             const { data: { user } } = await _supabase.auth.getUser();
-            const dados = {
-                user_id: user.id,
-                descricao: document.getElementById('rec-desc').value,
-                valor: parseFloat(document.getElementById('rec-valor').value),
-                categoria: document.getElementById('rec-cat').value,
-                periodo: document.getElementById('filtro-periodo').value
-            };
-            await _supabase.from('receitas').insert([dados]);
+            
+            const tipo = document.getElementById('rec-tipo').value;
+            const qtdMeses = tipo === 'recorrente' ? parseInt(document.getElementById('rec-meses').value || 1) : 1;
+            const valorInformado = parseFloat(document.getElementById('rec-valor').value);
+            const desc = document.getElementById('rec-desc').value;
+            const cat = document.getElementById('rec-cat').value;
+            
+            const periodoInicial = document.getElementById('filtro-periodo').value;
+            let [ano, mes] = periodoInicial.split('-').map(Number);
+
+            const receitasInserir = [];
+            for (let i = 1; i <= qtdMeses; i++) {
+                let mesString = String(mes).padStart(2, '0');
+                let periodoParcela = `${ano}-${mesString}`;
+
+                receitasInserir.push({
+                    user_id: user.id,
+                    descricao: tipo === 'recorrente' ? `${desc} (${i}/${qtdMeses})` : desc,
+                    valor: valorInformado,
+                    categoria: cat,
+                    periodo: periodoParcela
+                });
+
+                mes++;
+                if (mes > 12) { mes = 1; ano++; }
+            }
+
+            await _supabase.from('receitas').insert(receitasInserir);
             document.getElementById('form-receita').reset();
+            ajustarCamposReceita();
             atualizarTudo();
         }
 
         async function salvarDespesa(event) {
             event.preventDefault();
             const { data: { user } } = await _supabase.auth.getUser();
-            
             const tipo = document.getElementById('des-tipo').value;
             const formaPagamento = document.getElementById('des-forma').value;
             const totalParcelas = tipo === 'fixa' ? 12 : parseInt(document.getElementById('des-parcelas').value || 1);
@@ -262,7 +332,6 @@
             atualizarTudo();
         }
 
-        // Função isolada para criar parcelas no banco de dados de forma sequencial
         async function gerarParcelasBanco(despesaId, userId, qtdMeses, valor, formaPagamento, cartaoId, periodoPartida, numeroParcelaInicial = 1) {
             const parcelasParaInserir = [];
             let [ano, mes] = periodoPartida.split('-').map(Number);
@@ -294,45 +363,78 @@
                 mes++;
                 if (mes > 12) { mes = 1; ano++; }
             }
-
             await _supabase.from('parcelas_despesas').insert(parcelasParaInserir);
+        }
+
+        // Modal adaptado para Receitas ou Saídas
+        function abrirModalEdicao(id, valorAtual, tipoTabela) {
+            itemSendoEditado.id = id;
+            itemSendoEditado.tipoTabela = tipoTabela;
+            
+            const modal = document.getElementById('custom-modal-edit');
+            const input = document.getElementById('modal-edit-input');
+            const titulo = document.getElementById('modal-edit-titulo');
+            const icone = document.getElementById('modal-edit-icon');
+            
+            input.value = valorAtual;
+            
+            if (tipoTabela === 'receitas') {
+                titulo.innerText = "Editar Valor da Receita";
+                icone.innerText = "📈";
+                icone.className = "bg-emerald-500/10 p-2.5 rounded-xl text-emerald-400";
+            } else {
+                titulo.innerText = "Editar Valor da Saída";
+                icone.innerText = "✏️";
+                icone.className = "bg-indigo-500/10 p-2.5 rounded-xl text-indigo-400";
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.firstElementChild.classList.remove('scale-95');
+            }, 10);
+
+            document.getElementById('modal-edit-btn-salvar').onclick = async function() {
+                const novoValor = parseFloat(input.value);
+                if (isNaN(novoValor) || novoValor <= 0) return alert("Insira um valor válido.");
+                
+                const { error } = await _supabase.from(itemSendoEditado.tipoTabela).update({ valor: novoValor }).eq('id', itemSendoEditado.id);
+                if (error) alert("Falha na atualização: " + error.message);
+                else {
+                    fecharModalEdicao();
+                    atualizarTudo();
+                }
+            };
+        }
+
+        function fecharModalEdicao() {
+            const modal = document.getElementById('custom-modal-edit');
+            modal.classList.add('opacity-0');
+            modal.firstElementChild.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+            itemSendoEditado = { id: null, tipoTabela: '' };
         }
 
         async function renovarDespesaFixa(despesaId, ultimaParcelaNum, ultimoPeriodo, valor, forma, cartaoId) {
             if (!confirm("Deseja renovar essa despesa fixa por mais 12 meses?")) return;
             const { data: { user } } = await _supabase.auth.getUser();
             
-            // Descobre o próximo mês do calendário a partir da última parcela existente
             let [ano, mes] = ultimoPeriodo.split('-').map(Number);
             mes++;
             if (mes > 12) { mes = 1; ano++; }
             const proximoPeriodo = `${ano}-${String(mes).padStart(2, '0')}`;
 
-            // Atualiza a tabela pai 'despesas' adicionando mais 12 parcelas ao contador geral
             const novoTotal = parseInt(ultimaParcelaNum) + 12;
             await _supabase.from('despesas').update({ total_parcelas: novoTotal }).eq('id', despesaId);
-
-            // Gera as 12 novas parcelas no banco
-            await gerarParcelasBanco(despesaId, user.id, 12, parseFloat(valor), forma, cartaoId, proximoPeriodo, parseInt(ultimaParcelaNum) + 10);
+            await gerarParcelasBanco(despesaId, user.id, 12, parseFloat(valor), forma, cartaoId, proximoPeriodo, parseInt(ultimaParcelaNum) + 1);
             
-            alert("Despesa fixa renovada com sucesso por mais 12 meses!");
+            alert("Despesa fixa estendida com sucesso por mais 12 meses!");
             atualizarTudo();
         }
 
-        async function alterarValorParcela(parcelaId, valorAntigo) {
-            const novoValorStr = prompt("Digite o novo valor para esta parcela:", valorAntigo);
-            if (novoValorStr === null) return;
-            const novoValor = parseFloat(novoValorStr);
-            if (isNaN(novoValor) || novoValor <= 0) return alert("Valor inválido.");
-
-            const { error } = await _supabase.from('parcelas_despesas').update({ valor: novoValor }).eq('id', parcelaId);
-            if (error) alert("Erro ao atualizar: " + error.message);
-            else atualizarTudo();
-        }
-
-        async function excluirParcela(parcelaId) {
-            if (!confirm("Tem certeza que deseja excluir esta despesa deste mês específico?")) return;
-            const { error } = await _supabase.from('parcelas_despesas').delete().eq('id', parcelaId);
+        async function excluirItem(id, tipoTabela) {
+            if (!confirm("Remover esse registro deste período?")) return;
+            const { error } = await _supabase.from(tipoTabela).delete().eq('id', id);
             if (error) alert("Erro ao excluir: " + error.message);
             else atualizarTudo();
         }
@@ -344,23 +446,39 @@
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) return;
 
-            // 1. Carrega Receitas
+            // Renderizar Receitas Dinâmicas (Mobile Friendly)
             const { data: receitas } = await _supabase.from('receitas').select('*').eq('periodo', periodo).eq('user_id', user.id);
             let tReceitas = 0;
-            const tRecBody = document.getElementById('tabela-receitas');
-            tRecBody.innerHTML = '';
+            const containerReceitas = document.getElementById('container-lista-receitas');
+            containerReceitas.innerHTML = '';
+            
             (receitas || []).forEach(r => {
-                tReceitas += parseFloat(r.valor);
-                tRecBody.innerHTML += `<tr><td class="py-2">${r.descricao}</td><td class="text-slate-400">${r.categoria}</td><td class="text-right text-emerald-400 font-bold">+ R$ ${parseFloat(r.valor).toFixed(2)}</td></tr>`;
+                const valor = parseFloat(r.valor);
+                tReceitas += valor;
+                
+                containerReceitas.innerHTML += `
+                    <div class="bg-slate-900/40 md:bg-transparent border border-slate-800/60 md:border-none rounded-xl p-3 md:p-0 md:py-3 flex flex-col md:flex-row justify-between md:items-center gap-2 md:gap-4 border-b md:border-b border-slate-800/40">
+                        <div class="flex-1">
+                            <span class="font-semibold text-slate-100 text-sm md:text-xs">${r.descricao}</span>
+                            <span class="text-[11px] text-slate-500 block mt-0.5">Categoria: ${r.categoria}</span>
+                        </div>
+                        <div class="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-1.5 pt-2 md:pt-0 border-t border-slate-800/30 md:border-none">
+                            <span class="font-bold text-emerald-400 text-sm md:text-xs">+ R$ ${valor.toFixed(2)}</span>
+                            <div class="flex gap-3 text-xs md:text-[10px] font-medium">
+                                <button onclick="abrirModalEdicao('${r.id}', ${valor}, 'receitas')" class="text-indigo-400 hover:text-indigo-300 py-1">Editar R$</button>
+                                <button onclick="excluirItem('${r.id}', 'receitas')" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
 
-            // 2. Carrega Saídas do Mês Atual
+            // Renderizar Saídas
             const { data: parcelas } = await _supabase.from('parcelas_despesas').select('*, despesas(*)').eq('periodo', periodo).eq('user_id', user.id);
-            
             let tFixas = 0;
             let tVariaveis = 0;
-            const tDesBody = document.getElementById('tabela-despesas');
-            tDesBody.innerHTML = '';
+            const containerSaidas = document.getElementById('container-lista-despesas');
+            containerSaidas.innerHTML = '';
 
             if (parcelas) {
                 for (const p of parcelas) {
@@ -370,7 +488,6 @@
                     if (p.despesas.tipo === 'fixa') tFixas += valor;
                     else tVariaveis += valor;
 
-                    // Verifica em tempo real se esta parcela específica é a última existente no banco para esta despesa
                     let eUltimoMes = false;
                     if (p.despesas.tipo === 'fixa') {
                         const { data: tParcelas } = await _supabase.from('parcelas_despesas')
@@ -379,12 +496,10 @@
                             .order('periodo', { ascending: false })
                             .limit(1);
                         
-                        if (tParcelas && tParcelas[0]?.periodo === periodo) {
-                            eUltimoMes = true;
-                        }
+                        if (tParcelas && tParcelas[0]?.periodo === periodo) eUltimoMes = true;
                     }
 
-                    exibirLinhaDespesa(tDesBody, p, p.despesas, eUltimoMes);
+                    exibirLinhaDespesaMobileFriendly(containerSaidas, p, p.despesas, eUltimoMes);
                 }
             }
 
@@ -395,48 +510,49 @@
             const saldoGeral = tReceitas - (tFixas + tVariaveis);
             const cardSaldo = document.getElementById('card-saldo');
             cardSaldo.innerText = `R$ ${saldoGeral.toFixed(2)}`;
-            cardSaldo.className = `text-2xl font-bold mt-2 ${saldoGeral < 0 ? 'text-rose-400' : 'text-emerald-400'}`;
+            cardSaldo.className = `text-lg md:text-2xl font-bold mt-1 md:mt-2 ${saldoGeral < 0 ? 'text-rose-400' : 'text-emerald-400'}`;
         }
 
-        function exibirLinhaDespesa(container, parcela, despesa, eUltimoMes) {
+        function exibirLinhaDespesaMobileFriendly(container, parcela, despesa, eUltimoMes) {
             const sufixoDesc = despesa.tipo === 'fixa' ? ' 🔄' : ` (${parcela.numero_parcela}/${despesa.total_parcelas})`;
             const badgeCor = despesa.tipo === 'fixa' ? 'text-amber-400 border-amber-500/30 bg-amber-500/5' : 'text-rose-400 border-rose-500/30 bg-rose-500/5';
             
-            let infoPgto = '💵 PIX/Dinheiro';
+            let infoPgto = '💵 PIX/Débito';
             if (despesa.forma_pagamento === 'credito') infoPgto = '💳 Crédito';
-            else if (despesa.forma_pagamento === 'empresa_parcelado') infoPgto = '🏢 Corp / Empresa';
+            else if (despesa.forma_pagamento === 'empresa_parcelado') infoPgto = '🏢 Empresa';
 
             const dataBR = parcela.data_vencimento.split('-').reverse().join('/');
 
-            // Cria o Alerta de Último Mês com o botão de renovação caso a validação seja verdadeira
             let alertaRenovacaoHtml = '';
             if (eUltimoMes) {
                 alertaRenovacaoHtml = `
-                    <div class="mt-1.5 flex flex-wrap items-center gap-1.5 animate-pulse">
-                        <span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] px-1.5 py-0.5 rounded font-bold">⚠️ ÚLTIMO MÊS</span>
-                        <button onclick="renovarDespesaFixa('${despesa.id}', '${parcela.numero_parcela}', '${parcela.periodo}', ${parcela.valor}, '${despesa.forma_pagamento}', '${despesa.cartao_id}')" class="bg-indigo-600/80 hover:bg-indigo-500 text-white text-[9px] px-2 py-0.5 rounded font-semibold transition-all">
-                            Renovar +12 meses
+                    <div class="mt-2 flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 p-2 rounded-xl">
+                        <span class="text-amber-400 text-[10px] font-bold tracking-tight">⚠️ ÚLTIMO MÊS</span>
+                        <button onclick="renovarDespesaFixa('${despesa.id}', '${parcela.numero_parcela}', '${parcela.periodo}', ${parcela.valor}, '${despesa.forma_pagamento}', '${despesa.cartao_id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] px-2 py-1 rounded-md font-bold transition-all ml-auto">
+                            Renovar 12 Meses
                         </button>
                     </div>
                 `;
             }
 
             container.innerHTML += `
-                <tr class="hover:bg-slate-800/20 transition-colors border-b border-slate-800/40 group">
-                    <td class="py-3 font-medium text-slate-200">
-                        ${despesa.descricao}${sufixoDesc}
-                        <br><span class="text-[10px] text-slate-500">${infoPgto} | Venc: ${dataBR}</span>
-                        ${alertaRenovacaoHtml}
-                    </td>
-                    <td class="py-3 items-start"><span class="border px-1.5 py-0.5 text-[10px] rounded ${badgeCor}">${despesa.tipo.toUpperCase()}</span></td>
-                    <td class="py-3 text-right">
-                        <span class="font-semibold text-rose-400">- R$ ${parseFloat(parcela.valor).toFixed(2)}</span>
-                        <div class="text-[10px] space-x-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="alterarValorParcela('${parcela.id}', ${parcela.valor})" class="text-indigo-400 hover:underline">Editar R$</button>
-                            <button onclick="excluirParcela('${parcela.id}')" class="text-rose-500 hover:underline">Excluir</button>
+                <div class="bg-slate-900/40 md:bg-transparent border border-slate-800/60 md:border-none rounded-xl p-3 md:p-0 md:py-3 flex flex-col md:flex-row justify-between md:items-center gap-2 md:gap-4 border-b md:border-b border-slate-800/40">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-semibold text-slate-100 text-sm md:text-xs">${despesa.descricao}${sufixoDesc}</span>
+                            <span class="border px-1.5 py-0.5 text-[9px] rounded font-semibold tracking-wider ${badgeCor}">${despesa.tipo.toUpperCase()}</span>
                         </div>
-                    </td>
-                </tr>
+                        <span class="text-[11px] text-slate-500 block mt-0.5">${infoPgto} • Vencimento em ${dataBR}</span>
+                        ${alertaRenovacaoHtml}
+                    </div>
+                    <div class="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-1.5 pt-2 md:pt-0 border-t border-slate-800/30 md:border-none">
+                        <span class="font-bold text-rose-400 text-sm md:text-xs">- R$ ${parseFloat(parcela.valor).toFixed(2)}</span>
+                        <div class="flex gap-3 text-xs md:text-[10px] font-medium">
+                            <button onclick="abrirModalEdicao('${parcela.id}', ${parcela.valor}, 'parcelas_despesas')" class="text-indigo-400 hover:text-indigo-300 py-1">Editar R$</button>
+                            <button onclick="excluirItem('${parcela.id}', 'parcelas_despesas')" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
+                        </div>
+                    </div>
+                </div>
             `;
         }
 
@@ -469,21 +585,16 @@
             }
         }
 
-        // Função de logout blindada de ponta a ponta
         async function logout() {
             try { 
                 await _supabase.auth.signOut(); 
             } catch(e) {
-                console.warn("SignOut nativo ignorado ou offline.");
+                console.warn("SignOut nativo ignorado.");
             } finally {
-                // Remove qualquer token remanescente do cache do navegador
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
-                    if (key && key.startsWith('sb-')) {
-                        localStorage.removeItem(key);
-                    }
+                    if (key && key.startsWith('sb-')) localStorage.removeItem(key);
                 }
-                // Redireciona limpando o estado de memória da janela ativa
                 window.location.href = window.location.pathname;
             }
         }
@@ -491,7 +602,7 @@
         function mostrarDashboard() {
             document.getElementById('auth-container').classList.add('hidden');
             document.getElementById('app-dashboard').classList.remove('hidden');
-            document.body.className = "bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 min-h-screen text-slate-100 font-sans flex items-start justify-center p-4 md:p-8";
+            document.body.className = "bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 min-h-screen text-slate-100 font-sans flex items-start justify-center p-3 md:p-8";
         }
         function mostrarLogin() {
             document.getElementById('auth-container').classList.remove('hidden');
