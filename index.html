@@ -217,12 +217,13 @@
             }
         }
 
-        _supabase.auth.onAuthStateChange((event, session) => {
+        // CORREÇÃO LOGS AUTOMÁTICOS: onAuthStateChange agora dispara o carregamento completo após login
+        _supabase.auth.onAuthStateChange(async (event, session) => {
             if (session) {
                 mostrarDashboard();
-                if (document.getElementById('user-display-name').innerText === "Carregando...") {
-                    buscarNomeUsuario(session.user.id);
-                }
+                buscarNomeUsuario(session.user.id);
+                await carregarOpcoesCartoes();
+                await atualizarTudo();
             } else {
                 mostrarLogin();
             }
@@ -313,15 +314,14 @@
                 const periodoInicial = obterPeriodoSelecionado();
                 let [ano, mes] = periodoInicial.split('-').map(Number);
 
-                // SOLUÇÃO DEFINITIVA: Usamos uma tag de lote direto no texto da descrição para evitar depender de colunas estruturais
-                const tokenLote = tipo === 'recorrente' ? `[REC-${Math.floor(Date.now()/1000)}]` : '';
+                const tokenLote = tipo === 'recorrente' ? `LOTE-${Math.floor(Date.now()/1000)}` : '';
 
                 const receitasInserir = [];
                 for (let i = 1; i <= qtdMeses; i++) {
                     let mesString = String(mes).padStart(2, '0');
                     let periodoParcela = `${ano}-${mesString}`;
                     
-                    let descricaoFinal = tipo === 'recorrente' ? `${desc} (${i}/${qtdMeses}) ${tokenLote}` : desc;
+                    let descricaoFinal = tipo === 'recorrente' ? `${desc} (${i}/${qtdMeses}) [${tokenLote}]` : desc;
 
                     receitasInserir.push({
                         user_id: user.id,
@@ -340,7 +340,7 @@
 
                 document.getElementById('form-receita').reset();
                 ajustarCamposReceita();
-                atualizarTudo();
+                await atualizarTudo();
             } catch (err) {
                 alert("Erro ao salvar receita: " + err.message);
             }
@@ -378,7 +378,7 @@
             
             document.getElementById('form-despesa').reset();
             ajustarCamposDespesa();
-            atualizarTudo();
+            await atualizarTudo();
         }
 
         async function gerarParcelasBanco(despesaId, userId, qtdMeses, valor, formaPagamento, cartaoId, periodoPartida, numeroParcelaInicial = 1) {
@@ -450,7 +450,7 @@
                 if (error) alert("Falha na atualização: " + error.message);
                 else {
                     fecharModalEdicao();
-                    atualizarTudo();
+                    await atualizarTudo();
                 }
             };
         }
@@ -477,7 +477,7 @@
             await gerarParcelasBanco(despesaId, user.id, 12, parseFloat(valor), forma, cartaoId, proximoPeriodo, parseInt(ultimaParcelaNum) + 1);
             
             alert("Despesa fixa estendida com sucesso por mais 12 meses!");
-            atualizarTudo();
+            await atualizarTudo();
         }
 
         function tentarExcluirItem(id, parentId, tagGrupo, tipo) {
@@ -503,13 +503,12 @@
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
-        async function ejecutarExclusaoDefinitiva(apagarTudo) {
+        async function executarExclusaoDefinitiva(apagarTudo) {
             fecharModalExclusao();
             try {
                 if (itemSendoExcluido.tipo === 'receita_unica' || itemSendoExcluido.tipo === 'receita_recorrente') {
                     if (apagarTudo && itemSendoExcluido.tagGrupo) {
-                        // Exclui todas as receitas que tenham a tag desse lote específico na descrição
-                        await _supabase.from('receitas').delete().like('descricao', `%${itemSendoExcluido.tagGrupo}%`);
+                        await _supabase.from('receitas').delete().like('descricao', `%[${itemSendoExcluido.tagGrupo}]%`);
                     } else {
                         await _supabase.from('receitas').delete().eq('id', itemSendoExcluido.id);
                     }
@@ -524,10 +523,11 @@
             } catch (err) {
                 console.error("Erro ao processar exclusão:", err);
             } finally {
-                atualizarTudo();
+                await atualizarTudo();
             }
         }
 
+        // BIND SEGURO DOS EVENTOS DO MODAL DE EXCLUSÃO
         document.getElementById('btn-delete-only').onclick = () => executarExclusaoDefinitiva(false);
         document.getElementById('btn-delete-all').onclick = () => executarExclusaoDefinitiva(true);
 
@@ -549,13 +549,13 @@
                 const valor = parseFloat(r.valor);
                 tReceitas += valor;
                 
-                // Identifica se a receita possui o token de lote na descrição
-                const matchLote = r.descricao.match(/\[REC-\d+\]/);
-                const tokenLote = matchLote ? matchLote[0] : null;
-                const tipoRec = tokenLote ? 'receita_recorrente' : 'receita_unica';
+                // Mapeia e captura com segurança a string do token do lote
+                const matchLote = r.descricao.match(/\[(LOTE-\d+)\]/);
+                const tagGrupoLimpa = matchLote ? matchLote[1] : '';
+                const tipoRec = tagGrupoLimpa ? 'receita_recorrente' : 'receita_unica';
                 
-                // Limpa o token da descrição antes de mostrar na tela para o usuário
-                const descricaoExibicao = r.descricao.replace(/\[REC-\d+\]/, '').trim();
+                // Limpa o token visualmente na listagem da tela
+                const descricaoExibicao = r.descricao.replace(/\[LOTE-\d+\]/, '').trim();
                 
                 containerReceitas.innerHTML += `
                     <div class="bg-slate-900/40 md:bg-transparent border border-slate-800/60 md:border-none rounded-xl p-3 md:p-0 md:py-3 flex flex-col md:flex-row justify-between md:items-center gap-2 md:gap-4 border-b md:border-b border-slate-800/40">
@@ -567,7 +567,7 @@
                             <span class="font-bold text-emerald-400 text-sm md:text-xs">+ R$ ${valor.toFixed(2)}</span>
                             <div class="flex gap-3 text-xs md:text-[10px] font-medium">
                                 <button onclick="abrirModalEdicao('${r.id}', ${valor}, 'receitas')" class="text-indigo-400 hover:text-indigo-300 py-1">Editar R$</button>
-                                <button onclick="tentarExcluirItem('${r.id}', null, '${tokenLote || ''}', '${tipoRec}')" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
+                                <button onclick="tentarExcluirItem('${r.id}', null, '${tagGrupoLimpa}', '${tipoRec}')" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
                             </div>
                         </div>
                     </div>
