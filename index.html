@@ -3,60 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle Financeiro</title>
+    <title>Controle Financeiro Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
 </head>
-<body class="bg-gray-100 font-sans antialiased">
+<body class="bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 min-h-screen text-slate-100 font-sans antialiased flex items-center justify-center p-4">
 
-    <div class="max-w-4xl mx-auto p-4 md:p-8">
-        
-        <header class="flex justify-between items-center mb-8 bg-white p-6 rounded-xl shadow-sm">
-            <h1 class="text-2xl font-bold text-gray-800">💰 Meu Controle Financeiro</h1>
-            <div id="auth-section">
-                <button onclick="login()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">Entrar com e-mail</button>
+    <div id="auth-container" class="w-full max-w-md bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-700/50 space-y-6">
+        <div class="text-center space-y-2">
+            <div class="inline-flex p-3 bg-indigo-600/20 text-indigo-400 rounded-xl mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
             </div>
+            <h2 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Finanças Inteligentes</h2>
+            <p class="text-sm text-slate-400">Faça login ou crie sua conta para começar</p>
+        </div>
+
+        <form id="login-form" onsubmit="handleAuth(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">E-mail</label>
+                <input type="email" id="auth-email" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" placeholder="seu@email.com">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Senha</label>
+                <input type="password" id="auth-password" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" placeholder="••••••••">
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition-all duration-150 transform hover:-translate-y-0.5">
+                Entrar / Cadastrar
+            </button>
+        </form>
+        <p class="text-center text-xs text-slate-500">Se o e-mail não existir, criaremos uma conta nova automaticamente.</p>
+    </div>
+
+    <div id="app-dashboard" class="hidden w-full max-w-4xl self-start my-4 md:my-8 space-y-6">
+        
+        <header class="flex justify-between items-center bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl">💰</span>
+                <h1 class="text-xl font-bold tracking-tight">Minhas Finanças</h1>
+            </div>
+            <button onclick="logout()" class="bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-400 px-4 py-2 rounded-xl text-sm font-medium border border-slate-700/50 transition-colors">
+                Sair
+            </button>
         </header>
 
-        <main id="app-dashboard" class="hidden space-y-6">
-            
-            <section class="bg-white p-6 rounded-xl shadow-sm">
-                <h2 class="text-lg font-semibold mb-4 text-gray-700">Nova Transação</h2>
-                <form id="finance-form" onsubmit="salvarTransacao(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <input type="text" id="desc" placeholder="Ex: Mercado" required class="border p-2 rounded-lg w-full">
-                    <input type="number" id="valor" step="0.01" placeholder="Ex: -50.00 ou 1500" required class="border p-2 rounded-lg w-full">
-                    <input type="text" id="cat" placeholder="Ex: Alimentação" required class="border p-2 rounded-lg w-full">
-                    <button type="submit" class="bg-emerald-600 text-white p-2 rounded-lg hover:bg-emerald-700 transition">Adicionar</button>
-                </form>
-            </section>
+        <section class="bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl">
+            <h2 class="text-md font-semibold text-slate-400 uppercase tracking-wider mb-4">Nova Transação</h2>
+            <form id="finance-form" onsubmit="salvarTransacao(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <input type="text" id="desc" placeholder="Ex: Mercado" required class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                <input type="number" id="valor" step="0.01" placeholder="Ex: -50.00 ou 1500" required class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                <input type="text" id="cat" placeholder="Ex: Alimentação" required class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium p-3 rounded-xl transition shadow-lg shadow-emerald-900/20">
+                    Adicionar
+                </button>
+            </form>
+        </section>
 
-            <section class="bg-white p-6 rounded-xl shadow-sm">
-                <h2 class="text-lg font-semibold mb-4 text-gray-700">Histórico</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b text-gray-400 uppercase text-xs">
-                                <th class="py-3">Descrição</th>
-                                <th class="py-3">Categoria</th>
-                                <th class="py-3 text-right">Valor</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-corpo" class="text-gray-600 divide-y">
-                            </tbody>
-                    </table>
-                </div>
-            </section>
-        </main>
-
+        <section class="bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl">
+            <h2 class="text-md font-semibold text-slate-400 uppercase tracking-wider mb-4">Histórico de Atividades</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-500 uppercase text-xs tracking-wider">
+                            <th class="pb-3 font-semibold">Descrição</th>
+                            <th class="pb-3 font-semibold">Categoria</th>
+                            <th class="pb-3 font-semibold text-right">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-corpo" class="text-slate-300 divide-y divide-slate-800/50">
+                        </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
     <script>
-        // CONFIGURAÇÃO DO SUPABASE
-        const SUPABASE_URL = "https://ifssuvghcgmopeuiqhxw.supabase.co/rest/v1/";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlmc3N1dmdoY2dtb3BldWlxaHh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMTI0MzksImV4cCI6MjA5NTU4ODQzOX0.i5qM90p_QJCCIeZtU-PHzPE8DW0hP-SDn57favjkoKo";
+        // Validação de segurança das variáveis globais vindas do config.js
+        if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_KEY === 'undefined') {
+            alert("Erro crítico: O arquivo 'config.js' não foi encontrado ou não contém as variáveis configuradas corretamente.");
+        }
+
+        // Inicializa o cliente usando as variáveis do config.js
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Monitorar estado de Autenticação
+        // Ouvir mudanças de autenticação
         _supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
                 mostrarDashboard();
@@ -66,18 +98,23 @@
             }
         });
 
-        // Função de Login Simples (Abre prompt para testar rápido)
-        async function login() {
-            const email = prompt("Digite seu e-mail:");
-            const password = prompt("Digite sua senha:");
-            if(!email || !password) return;
+        // Função unificada para Login / Cadastro
+        async function handleAuth(event) {
+            event.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
 
-            const { error } = await _supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                // Se o usuário não existir, tenta cadastrar automaticamente para facilitar
+            // Tenta fazer login
+            const { error: loginError } = await _supabase.auth.signInWithPassword({ email, password });
+            
+            if (loginError) {
+                // Se der erro de credencial inválida, tenta cadastrar o usuário
                 const { error: signUpError } = await _supabase.auth.signUp({ email, password });
-                if (signUpError) alert("Erro: " + signUpError.message);
-                else alert("Cadastro realizado! Verifique seu e-mail ou tente logar.");
+                if (signUpError) {
+                    alert("Erro na autenticação: " + signUpError.message);
+                } else {
+                    alert("Conta criada com sucesso! Se você deixou a confirmação de e-mail ativada no Supabase, verifique sua caixa de entrada.");
+                }
             }
         }
 
@@ -85,36 +122,41 @@
             await _supabase.auth.signOut();
         }
 
-        // Alternar Telas Visuais
         function mostrarDashboard() {
+            document.body.className = "bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 min-h-screen text-slate-100 font-sans antialiased flex items-start justify-center p-4 md:p-8";
+            document.getElementById('auth-container').classList.add('hidden');
             document.getElementById('app-dashboard').classList.remove('hidden');
-            document.getElementById('auth-section').innerHTML = `<button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Sair</button>`;
         }
 
         function mostrarLogin() {
+            document.body.className = "bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 min-h-screen text-slate-100 font-sans antialiased flex items-center justify-center p-4";
+            document.getElementById('auth-container').classList.remove('hidden');
             document.getElementById('app-dashboard').classList.add('hidden');
-            document.getElementById('auth-section').innerHTML = `<button onclick="login()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Entrar / Cadastrar</button>`;
             document.getElementById('tabela-corpo').innerHTML = '';
+            document.getElementById('login-form').reset();
         }
 
-        // Buscar dados do Banco
         async function carregarTransacoes() {
             const { data, error } = await _supabase.from('transacoes').select('*').order('created_at', { ascending: false });
             if (error) return console.error(error);
 
             const tbody = document.getElementById('tabela-corpo');
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="py-8 text-center text-slate-500 text-sm">Nenhuma transação encontrada. Comece adicionando uma acima!</td></tr>`;
+                return;
+            }
+
             tbody.innerHTML = data.map(t => `
-                <tr>
-                    <td class="py-3 font-medium text-gray-800">${t.descricao}</td>
-                    <td class="py-3">${t.categoria}</td>
-                    <td class="py-3 text-right font-bold ${t.valor < 0 ? 'text-red-500' : 'text-emerald-500'}">
-                        R$ ${parseFloat(t.valor).toFixed(2)}
+                <tr class="hover:bg-slate-800/20 transition-colors">
+                    <td class="py-4 font-medium text-slate-200">${t.descricao}</td>
+                    <td class="py-4 text-slate-400 text-sm"><span class="bg-slate-800 px-2 py-1 rounded-md border border-slate-700/30">${t.categoria}</span></td>
+                    <td class="py-4 text-right font-semibold ${t.valor < 0 ? 'text-rose-400' : 'text-emerald-400'}">
+                        ${t.valor < 0 ? '-' : '+'} R$ ${Math.abs(parseFloat(t.valor)).toFixed(2)}
                     </td>
                 </tr>
             `).join('');
         }
 
-        // Inserir dados no Banco
         async function salvarTransacao(event) {
             event.preventDefault();
             const { data: { user } } = await _supabase.auth.getUser();
@@ -127,10 +169,11 @@
             };
 
             const { error } = await _supabase.from('transacoes').insert([novaTransacao]);
-            if (error) alert("Erro ao salvar: " + error.message);
-            else {
+            if (error) {
+                alert("Erro ao salvar: " + error.message);
+            } else {
                 document.getElementById('finance-form').reset();
-                carregarTransacoes(); // Atualiza a tabela
+                carregarTransacoes();
             }
         }
     </script>
