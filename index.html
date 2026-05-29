@@ -195,32 +195,30 @@
         let modoAuth = 'login';
         let listaGlobalCartoes = [];
         let itemSendoEditado = { id: null, tipoTabela: '' };
-        
-        // Controle de Exclusão inteligente global
         let itemSendoExcluido = { id: null, parentId: null, tagGrupo: null, tipo: null };
 
         const hoje = new Date();
         const mesAtualStr = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
 
-        // FUNÇÃO DE INICIALIZAÇÃO CRÍTICA: Resolve de vez a reidratação estável do token no refresh
+        // RESOLUÇÃO DEFINITIVA: Seta o período do input antes de qualquer carregamento de dados
         async function inicializarApp() {
+            // 1. Força a data correta no input antes de rodar os selects do banco
+            const filtroInput = document.getElementById('filtro-periodo');
+            if (filtroInput) {
+                filtroInput.value = mesAtualStr;
+            }
+
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
                 mostrarDashboard();
                 buscarNomeUsuario(session.user.id);
                 await carregarOpcoesCartoes();
-                
-                const filtroInput = document.getElementById('filtro-periodo');
-                if (filtroInput && !filtroInput.value) {
-                    filtroInput.value = mesAtualStr;
-                }
-                atualizarTudo();
+                await atualizarTudo(); // Agora roda com o período já setado corretamente
             } else {
                 mostrarLogin();
             }
         }
 
-        // Monitor passivo do estado da autenticação
         _supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
                 mostrarDashboard();
@@ -232,10 +230,9 @@
             }
         });
 
-        // Executa imediatamente ao carregar a janela
         window.addEventListener('DOMContentLoaded', inicializarApp);
 
-        function obtenerPeriodoSelecionado() {
+        function obterPeriodoSelecionado() {
             const filtroInput = document.getElementById('filtro-periodo');
             if (filtroInput && filtroInput.value) {
                 return filtroInput.value;
@@ -318,7 +315,6 @@
                 const periodoInicial = obterPeriodoSelecionado();
                 let [ano, mes] = periodoInicial.split('-').map(Number);
 
-                // CORREÇÃO: Geramos um ID numérico puro (inteiro) de carimbo de tempo para caber perfeitamente na coluna categoria_fixa do banco
                 const timestampIdLote = tipo === 'recorrente' ? Math.floor(Date.now() / 1000) : null;
 
                 const receitasInserir = [];
@@ -332,7 +328,7 @@
                         valor: valorInformado,
                         categoria: cat,
                         periodo: periodoParcela,
-                        categoria_fixa: timestampIdLote // Enviado como número inteiro limpo para o banco
+                        categoria_fixa: timestampIdLote
                     });
 
                     mes++;
@@ -512,7 +508,6 @@
             try {
                 if (itemSendoExcluido.tipo === 'receita_unica' || itemSendoExcluido.tipo === 'receita_recorrente') {
                     if (apagarTudo && itemSendoExcluido.tagGrupo) {
-                        // Limpa o lote de receitas usando a coluna estável numéricamente
                         await _supabase.from('receitas').delete().eq('categoria_fixa', itemSendoExcluido.tagGrupo);
                     } else {
                         await _supabase.from('receitas').delete().eq('id', itemSendoExcluido.id);
@@ -700,7 +695,7 @@
             try { 
                 await _supabase.auth.signOut(); 
             } catch(e) {
-                console.warn("SignOut nativo simplificado.");
+                console.warn("SignOut nativo.");
             } finally {
                 for (let i = localStorage.length - 1; i >= 0; i--) {
                     const key = localStorage.key(i);
