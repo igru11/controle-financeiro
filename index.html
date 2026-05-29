@@ -217,7 +217,6 @@
             }
         }
 
-        // CORREÇÃO LOGS AUTOMÁTICOS: onAuthStateChange agora dispara o carregamento completo após login
         _supabase.auth.onAuthStateChange(async (event, session) => {
             if (session) {
                 mostrarDashboard();
@@ -321,6 +320,7 @@
                     let mesString = String(mes).padStart(2, '0');
                     let periodoParcela = `${ano}-${mesString}`;
                     
+                    // Salvando de forma estruturada para ser facilmente limpo e identificado
                     let descricaoFinal = tipo === 'recorrente' ? `${desc} (${i}/${qtdMeses}) [${tokenLote}]` : desc;
 
                     receitasInserir.push({
@@ -483,6 +483,7 @@
         function tentarExcluirItem(id, parentId, tagGrupo, tipo) {
             itemSendoExcluido = { id, parentId, tagGrupo, tipo };
 
+            // CORREÇÃO CRÍTICA: Abre o modal se for receita recorrente (possuir tag de grupo)
             if (tipo === 'receita_unica' || (tipo === 'despesa' && !parentId)) {
                 executarExclusaoDefinitiva(false);
                 return;
@@ -508,6 +509,7 @@
             try {
                 if (itemSendoExcluido.tipo === 'receita_unica' || itemSendoExcluido.tipo === 'receita_recorrente') {
                     if (apagarTudo && itemSendoExcluido.tagGrupo) {
+                        // Apaga todas as parcelas da receita vinculadas a esse lote
                         await _supabase.from('receitas').delete().like('descricao', `%[${itemSendoExcluido.tagGrupo}]%`);
                     } else {
                         await _supabase.from('receitas').delete().eq('id', itemSendoExcluido.id);
@@ -527,7 +529,6 @@
             }
         }
 
-        // BIND SEGURO DOS EVENTOS DO MODAL DE EXCLUSÃO
         document.getElementById('btn-delete-only').onclick = () => executarExclusaoDefinitiva(false);
         document.getElementById('btn-delete-all').onclick = () => executarExclusaoDefinitiva(true);
 
@@ -549,13 +550,13 @@
                 const valor = parseFloat(r.valor);
                 tReceitas += valor;
                 
-                // Mapeia e captura com segurança a string do token do lote
+                // Captura com precisão o token LOTE-xxxxx de dentro dos colchetes
                 const matchLote = r.descricao.match(/\[(LOTE-\d+)\]/);
                 const tagGrupoLimpa = matchLote ? matchLote[1] : '';
                 const tipoRec = tagGrupoLimpa ? 'receita_recorrente' : 'receita_unica';
                 
-                // Limpa o token visualmente na listagem da tela
-                const descricaoExibicao = r.descricao.replace(/\[LOTE-\d+\]/, '').trim();
+                // CORREÇÃO VISUAL: Limpa qualquer vestígio de código interno, deixando apenas o nome original e a parcela limpa
+                let descricaoExibicao = r.descricao.replace(/\s*\[LOTE-\d+\]/, '').trim();
                 
                 containerReceitas.innerHTML += `
                     <div class="bg-slate-900/40 md:bg-transparent border border-slate-800/60 md:border-none rounded-xl p-3 md:p-0 md:py-3 flex flex-col md:flex-row justify-between md:items-center gap-2 md:gap-4 border-b md:border-b border-slate-800/40">
