@@ -4,16 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle Financeiro Premium</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Seus dados de conexão isolados -->
     <script src="config.js"></script>
 </head>
 <body class="bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 min-h-screen text-slate-100 font-sans antialiased flex items-center justify-center p-4">
 
-    <!-- 1. TELA DE LOGIN -->
     <div id="auth-container" class="w-full max-w-md bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-700/50 space-y-6">
         <div class="text-center space-y-2">
             <div class="inline-flex p-3 bg-indigo-600/20 text-indigo-400 rounded-xl mb-2">
@@ -22,28 +18,42 @@
                 </svg>
             </div>
             <h2 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Finanças Inteligentes</h2>
-            <p class="text-sm text-slate-400">Faça login ou crie sua conta para começar</p>
+            <p class="text-sm text-slate-400" id="auth-subtitle">Acesse sua conta para gerenciar seu saldo</p>
         </div>
 
-        <form id="login-form" onsubmit="handleAuth(event)" class="space-y-4">
+        <div class="flex border-b border-slate-700">
+            <button onclick="mudarAbaAuth('login')" id="btn-aba-login" class="w-1/2 pb-3 font-medium text-sm text-center border-b-2 border-indigo-500 text-slate-100">Entrar</button>
+            <button onclick="mudarAbaAuth('cadastro')" id="btn-aba-cadastro" class="w-1/2 pb-3 font-medium text-sm text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200">Criar Conta</button>
+        </div>
+
+        <form id="auth-form" onsubmit="handleAuth(event)" class="space-y-4">
+            <div id="campos-cadastro" class="hidden grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Nome</label>
+                    <input type="text" id="auth-nome" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="João">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Sobrenome</label>
+                    <input type="text" id="auth-sobrenome" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="Silva">
+                </div>
+            </div>
+
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">E-mail</label>
-                <input type="email" id="auth-email" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" placeholder="seu@email.com">
+                <input type="email" id="auth-email" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="seu@email.com">
             </div>
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Senha</label>
-                <input type="password" id="auth-password" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" placeholder="••••••••">
+                <input type="password" id="auth-password" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="••••••••">
             </div>
-            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition-all duration-150 transform hover:-translate-y-0.5">
-                Entrar / Cadastrar
+            <button type="submit" id="btn-auth-submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition transform hover:-translate-y-0.5">
+                Entrar
             </button>
         </form>
     </div>
 
-    <!-- 2. DASHBOARD PRINCIPAL -->
     <div id="app-dashboard" class="hidden w-full max-w-6xl self-start my-4 md:my-8 space-y-6">
         
-        <!-- CABEÇALHO DO APP -->
         <header class="flex justify-between items-center bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl">
             <div class="flex items-center space-x-3">
                 <span class="text-2xl">💰</span>
@@ -57,7 +67,6 @@
             </button>
         </header>
 
-        <!-- CARDS DE RESUMO -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-xl">
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Saldo Geral</p>
@@ -77,10 +86,7 @@
             </div>
         </section>
 
-        <!-- FORMULÁRIOS DE ENTRADA (LADO A LADO) -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <!-- LANÇAR RECEITA -->
             <section class="bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
                 <div class="flex items-center space-x-2 text-emerald-400">
                     <span class="text-xl">📈</span>
@@ -89,14 +95,13 @@
                 <form id="form-receita" onsubmit="salvarReceita(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <input type="text" id="rec-desc" placeholder="Ex: Salário" required class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
                     <input type="number" id="rec-valor" step="0.01" placeholder="Valor (R$)" required class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
-                    <input type="text" id="rec-cat" placeholder="Ex: Trabalho" required class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition col-span-1 sm:col-span-1">
+                    <input type="text" id="rec-cat" placeholder="Ex: Trabalho" required class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
                     <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium p-3 rounded-xl transition sm:col-span-3 text-sm">
                         Adicionar Receita
                     </button>
                 </form>
             </section>
 
-            <!-- LANÇAR DESPESA -->
             <section class="bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
                 <div class="flex items-center space-x-2 text-rose-400">
                     <span class="text-xl">📉</span>
@@ -117,10 +122,7 @@
             </section>
         </div>
 
-        <!-- EXIBIÇÃO DOS EXTRATOS LADO A LADO -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <!-- HISTÓRICO DE RECEITAS -->
             <section class="bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl">
                 <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Extrato de Entradas</h3>
                 <div class="overflow-x-auto max-h-80 overflow-y-auto">
@@ -137,7 +139,6 @@
                 </div>
             </section>
 
-            <!-- HISTÓRICO DE DESPESAS -->
             <section class="bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl">
                 <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Extrato de Saídas</h3>
                 <div class="overflow-x-auto max-h-80 overflow-y-auto">
@@ -156,11 +157,10 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE LÓGICA -->
     <script>
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Globais de soma para os cards
+        let modoAuth = 'login'; // 'login' ou 'cadastro'
         let totalReceitas = 0;
         let totalFixas = 0;
         let totalVariaveis = 0;
@@ -175,15 +175,78 @@
             }
         });
 
+        // Alternar visualmente entre abas de Login e Cadastro
+        function mudarAbaAuth(modo) {
+            modoAuth = modo;
+            const camposCadastro = document.getElementById('campos-cadastro');
+            const btnSubmit = document.getElementById('btn-auth-submit');
+            const subtitle = document.getElementById('auth-subtitle');
+            
+            const inputNome = document.getElementById('auth-nome');
+            const inputSobrenome = document.getElementById('auth-sobrenome');
+
+            if (modo === 'cadastro') {
+                camposCadastro.classList.remove('hidden');
+                inputNome.setAttribute('required', 'true');
+                inputSobrenome.setAttribute('required', 'true');
+                
+                btnSubmit.innerText = 'Criar Conta Premium';
+                subtitle.innerText = 'Preencha seus dados para começar';
+                
+                document.getElementById('btn-aba-cadastro').className = "w-1/2 pb-3 font-medium text-sm text-center border-b-2 border-indigo-500 text-slate-100";
+                document.getElementById('btn-aba-login').className = "w-1/2 pb-3 font-medium text-sm text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200";
+            } else {
+                camposCadastro.classList.add('hidden');
+                inputNome.removeAttribute('required');
+                inputSobrenome.removeAttribute('required');
+                
+                btnSubmit.innerText = 'Entrar';
+                subtitle.innerText = 'Acesse sua conta para gerenciar seu saldo';
+                
+                document.getElementById('btn-aba-login').className = "w-1/2 pb-3 font-medium text-sm text-center border-b-2 border-indigo-500 text-slate-100";
+                document.getElementById('btn-aba-cadastro').className = "w-1/2 pb-3 font-medium text-sm text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200";
+            }
+        }
+
+        // Lógica Unificada de Login e Cadastro Inteligente
         async function handleAuth(event) {
             event.preventDefault();
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
 
-            const { error: loginError } = await _supabase.auth.signInWithPassword({ email, password });
-            if (loginError) {
-                const { error: signUpError } = await _supabase.auth.signUp({ email, password });
-                if (signUpError) alert("Erro: " + signUpError.message);
+            if (modoAuth === 'login') {
+                const { error } = await _supabase.auth.signInWithPassword({ email, password });
+                if (error) alert("Erro ao entrar: " + error.message);
+            } else {
+                const nome = document.getElementById('auth-nome').value.trim();
+                const sobrenome = document.getElementById('auth-sobrenome').value.trim();
+                const nomeCompleto = `${nome} ${sobrenome}`;
+
+                // Envia dados de cadastro. Passamos o nome completo dentro de 'options.data' 
+                // para que o Supabase disponibilize essa metadata na criação.
+                const { data, error } = await _supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: { full_name: nomeCompleto }
+                    }
+                });
+
+                if (error) {
+                    alert("Erro ao criar conta: " + error.message);
+                } else if (data && data.user) {
+                    // Força a inserção imediata na nossa tabela 'usuarios' publica
+                    const { error: dbError } = await _supabase.from('usuarios').insert([
+                        { id: data.user.id, nome: nomeCompleto }
+                    ]);
+                    
+                    if (dbError) {
+                        console.error("Erro ao salvar perfil, tentando atualizar...", dbError);
+                        // Caso o trigger já tenha rodado antes com a info antiga, fazemos um update
+                        await _supabase.from('usuarios').update({ nome: nomeCompleto }).eq('id', data.user.id);
+                    }
+                    alert("Conta criada com sucesso!");
+                }
             }
         }
 
@@ -199,7 +262,8 @@
             document.body.className = "bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 min-h-screen text-slate-100 font-sans antialiased flex items-center justify-center p-4";
             document.getElementById('auth-container').classList.remove('hidden');
             document.getElementById('app-dashboard').classList.add('hidden');
-            document.getElementById('login-form').reset();
+            document.getElementById('auth-form').reset();
+            mudarAbaAuth('login');
         }
 
         async function buscarNomeUsuario(userId) {
@@ -280,7 +344,7 @@
             const dados = {
                 user_id: user.id,
                 descricao: document.getElementById('rec-desc').value,
-                valor: Math.abs(parseFloat(document.getElementById('rec-valor').value)), // garante valor positivo
+                valor: Math.abs(parseFloat(document.getElementById('rec-valor').value)),
                 categoria: document.getElementById('rec-cat').value
             };
 
@@ -298,7 +362,7 @@
             const dados = {
                 user_id: user.id,
                 descricao: document.getElementById('des-desc').value,
-                valor: Math.abs(parseFloat(document.getElementById('des-valor').value)), // armazena o valor absoluto positivo
+                valor: Math.abs(parseFloat(document.getElementById('des-valor').value)),
                 categoria: document.getElementById('des-cat').value,
                 tipo: document.getElementById('des-tipo').value
             };
