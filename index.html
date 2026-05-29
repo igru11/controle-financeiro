@@ -35,7 +35,7 @@
         <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900/60 backdrop-blur-md p-4 md:p-6 rounded-2xl border border-slate-800 gap-4 shadow-xl">
             <div>
                 <h1 class="text-lg md:text-xl font-bold tracking-tight">💰 Sistema Financeiro</h1>
-                <p class="text-xs text-slate-400">Olá, <span id="user-display-name" class="text-indigo-400">Usuário</span></p>
+                <p class="text-xs text-slate-400">Olá, <span id="user-display-name" class="text-indigo-400">Carregando...</span></p>
             </div>
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                 <div class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 flex items-center justify-between sm:justify-start gap-2">
@@ -202,8 +202,9 @@
         const hoje = new Date();
         const mesAtualStr = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
 
-        // Monitor de autenticação limpo e estável para evitar loops no refresh
-        _supabase.auth.onAuthStateChange(async (event, session) => {
+        // FUNÇÃO DE INICIALIZAÇÃO CRÍTICA: Resolve de vez a reidratação estável do token no refresh
+        async function inicializarApp() {
+            const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
                 mostrarDashboard();
                 buscarNomeUsuario(session.user.id);
@@ -213,14 +214,28 @@
                 if (filtroInput && !filtroInput.value) {
                     filtroInput.value = mesAtualStr;
                 }
-                
                 atualizarTudo();
+            } else {
+                mostrarLogin();
+            }
+        }
+
+        // Monitor passivo do estado da autenticação
+        _supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                mostrarDashboard();
+                if (document.getElementById('user-display-name').innerText === "Carregando...") {
+                    buscarNomeUsuario(session.user.id);
+                }
             } else {
                 mostrarLogin();
             }
         });
 
-        function obterPeriodoSelecionado() {
+        // Executa imediatamente ao carregar a janela
+        window.addEventListener('DOMContentLoaded', inicializarApp);
+
+        function obtenerPeriodoSelecionado() {
             const filtroInput = document.getElementById('filtro-periodo');
             if (filtroInput && filtroInput.value) {
                 return filtroInput.value;
@@ -266,6 +281,7 @@
                 listaGlobalCartoes = data || [];
                 const select = document.getElementById('des-cartao');
                 const listaDiv = document.getElementById('lista-cartoes');
+                if (!select) return;
                 select.innerHTML = '<option value="">Selecione o Cartão...</option>';
                 listaDiv.innerHTML = '';
                 listaGlobalCartoes.forEach(c => {
@@ -302,8 +318,8 @@
                 const periodoInicial = obterPeriodoSelecionado();
                 let [ano, mes] = periodoInicial.split('-').map(Number);
 
-                // Criamos uma tag de lote limpa usando a descrição base + timestamp para blindar a gravação
-                const sufixoTagLote = tipo === 'recorrente' ? `${desc}_REC_${Date.now()}` : null;
+                // CORREÇÃO: Geramos um ID numérico puro (inteiro) de carimbo de tempo para caber perfeitamente na coluna categoria_fixa do banco
+                const timestampIdLote = tipo === 'recorrente' ? Math.floor(Date.now() / 1000) : null;
 
                 const receitasInserir = [];
                 for (let i = 1; i <= qtdMeses; i++) {
@@ -316,7 +332,7 @@
                         valor: valorInformado,
                         categoria: cat,
                         periodo: periodoParcela,
-                        observacao: sufixoTagLote // Salvamos o agrupador de lote em texto livre na coluna observacao para evitar restrições de tipo de coluna
+                        categoria_fixa: timestampIdLote // Enviado como número inteiro limpo para o banco
                     });
 
                     mes++;
@@ -468,17 +484,14 @@
             atualizarTudo();
         }
 
-        // DISPARADOR DA EXCLUSÃO INTELIGENTE CORRIGIDO
         function tentarExcluirItem(id, parentId, tagGrupo, tipo) {
             itemSendoExcluido = { id, parentId, tagGrupo, tipo };
 
-            // Se for receita comum (sem lote/tagGrupo) ou parcela sem id pai, limpa direto
             if (tipo === 'receita_unica' || (tipo === 'despesa' && !parentId)) {
                 executarExclusaoDefinitiva(false);
                 return;
             }
 
-            // Exibe o popup legal customizado
             const modal = document.getElementById('custom-modal-delete');
             modal.classList.remove('hidden');
             setTimeout(() => {
@@ -494,19 +507,17 @@
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
-        async function ejecutarExclusaoDefinitiva(apagarTudo) {
+        async function executarExclusaoDefinitiva(apagarTudo) {
             fecharModalExclusao();
             try {
                 if (itemSendoExcluido.tipo === 'receita_unica' || itemSendoExcluido.tipo === 'receita_recorrente') {
                     if (apagarTudo && itemSendoExcluido.tagGrupo) {
-                        // Remove todas as receitas vinculadas ao identificador textual do lote
-                        await _supabase.from('receitas').delete().eq('observacao', itemSendoExcluido.tagGrupo);
+                        // Limpa o lote de receitas usando a coluna estável numéricamente
+                        await _supabase.from('receitas').delete().eq('categoria_fixa', itemSendoExcluido.tagGrupo);
                     } else {
-                        // Remove apenas o lançamento do mês selecionado
                         await _supabase.from('receitas').delete().eq('id', itemSendoExcluido.id);
                     }
                 } else {
-                    // Trata-se do fluxo de remoção de despesas
                     if (apagarTudo && itemSendoExcluido.parentId) {
                         await _supabase.from('parcelas_despesas').delete().eq('despesa_id', itemSendoExcluido.parentId);
                         await _supabase.from('despesas').delete().eq('id', itemSendoExcluido.parentId);
@@ -543,8 +554,7 @@
                 const valor = parseFloat(r.valor);
                 tReceitas += valor;
                 
-                // Mapeia se a receita é recorrente olhando o campo observacao
-                const tipoRec = r.observacao ? 'receita_recorrente' : 'receita_unica';
+                const tipoRec = r.categoria_fixa ? 'receita_recorrente' : 'receita_unica';
                 
                 containerReceitas.innerHTML += `
                     <div class="bg-slate-900/40 md:bg-transparent border border-slate-800/60 md:border-none rounded-xl p-3 md:p-0 md:py-3 flex flex-col md:flex-row justify-between md:items-center gap-2 md:gap-4 border-b md:border-b border-slate-800/40">
@@ -556,7 +566,7 @@
                             <span class="font-bold text-emerald-400 text-sm md:text-xs">+ R$ ${valor.toFixed(2)}</span>
                             <div class="flex gap-3 text-xs md:text-[10px] font-medium">
                                 <button onclick="abrirModalEdicao('${r.id}', ${valor}, 'receitas')" class="text-indigo-400 hover:text-indigo-300 py-1">Editar R$</button>
-                                <button onclick="tentarExcluirItem('${r.id}', null, '${r.observacao || ''}', '${tipoRec}')" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
+                                <button onclick="tentarExcluirItem('${r.id}', null, '${r.categoria_fixa || ''}', '${tipoRec}')" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
                             </div>
                         </div>
                     </div>
@@ -692,7 +702,6 @@
             } catch(e) {
                 console.warn("SignOut nativo simplificado.");
             } finally {
-                // Remove estritamente apenas chaves vinculadas ao Supabase
                 for (let i = localStorage.length - 1; i >= 0; i--) {
                     const key = localStorage.key(i);
                     if (key && key.startsWith('sb-')) localStorage.removeItem(key);
@@ -705,11 +714,6 @@
             document.getElementById('auth-container').classList.add('hidden');
             document.getElementById('app-dashboard').classList.remove('hidden');
             document.body.className = "bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 min-h-screen text-slate-100 font-sans flex items-start justify-center p-3 md:p-8";
-            
-            const filtroInput = document.getElementById('filtro-periodo');
-            if (filtroInput && !filtroInput.value) {
-                filtroInput.value = mesAtualStr;
-            }
         }
         function mostrarLogin() {
             document.getElementById('auth-container').classList.remove('hidden');
