@@ -171,7 +171,7 @@
                 <div class="bg-rose-500/10 p-3 rounded-xl text-rose-400 text-lg">🗑️</div>
                 <div>
                     <h4 class="font-bold text-slate-100 text-base">Remover Registro Recorrente</h4>
-                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Detectamos que esta movimentação faz parte de um conjunto recorrente ou parcelado. Como você deseja prosseguir?</p>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Como deseja prosseguir com a exclusão desta movimentação?</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 gap-2 pt-1">
@@ -181,7 +181,7 @@
                 </button>
                 <button id="btn-delete-all" class="w-full text-left bg-rose-950/40 hover:bg-rose-950/70 border border-rose-900/40 rounded-xl p-3 flex flex-col transition">
                     <span class="text-xs font-bold text-rose-400">Apagar TODA a recorrência</span>
-                    <span class="text-[10px] text-rose-300/60 mt-0.5">Limpa todas as parcelas/recorrências vinculadas a este item.</span>
+                    <span class="text-[10px] text-rose-300/60 mt-0.5">Limpa as parcelas vinculadas a este item.</span>
                 </button>
             </div>
             <div class="flex justify-end pt-2">
@@ -200,9 +200,7 @@
         const hoje = new Date();
         const mesAtualStr = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
 
-        // RESOLUÇÃO DEFINITIVA: Seta o período do input antes de qualquer carregamento de dados
         async function inicializarApp() {
-            // 1. Força a data correta no input antes de rodar os selects do banco
             const filtroInput = document.getElementById('filtro-periodo');
             if (filtroInput) {
                 filtroInput.value = mesAtualStr;
@@ -213,7 +211,7 @@
                 mostrarDashboard();
                 buscarNomeUsuario(session.user.id);
                 await carregarOpcoesCartoes();
-                await atualizarTudo(); // Agora roda com o período já setado corretamente
+                await atualizarTudo();
             } else {
                 mostrarLogin();
             }
@@ -315,20 +313,22 @@
                 const periodoInicial = obterPeriodoSelecionado();
                 let [ano, mes] = periodoInicial.split('-').map(Number);
 
-                const timestampIdLote = tipo === 'recorrente' ? Math.floor(Date.now() / 1000) : null;
+                // SOLUÇÃO DEFINITIVA: Usamos uma tag de lote direto no texto da descrição para evitar depender de colunas estruturais
+                const tokenLote = tipo === 'recorrente' ? `[REC-${Math.floor(Date.now()/1000)}]` : '';
 
                 const receitasInserir = [];
                 for (let i = 1; i <= qtdMeses; i++) {
                     let mesString = String(mes).padStart(2, '0');
                     let periodoParcela = `${ano}-${mesString}`;
+                    
+                    let descricaoFinal = tipo === 'recorrente' ? `${desc} (${i}/${qtdMeses}) ${tokenLote}` : desc;
 
                     receitasInserir.push({
                         user_id: user.id,
-                        descricao: tipo === 'recorrente' ? `${desc} (${i}/${qtdMeses})` : desc,
+                        descricao: descricaoFinal,
                         valor: valorInformado,
                         categoria: cat,
-                        periodo: periodoParcela,
-                        categoria_fixa: timestampIdLote
+                        periodo: periodoParcela
                     });
 
                     mes++;
@@ -503,12 +503,13 @@
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
-        async function executarExclusaoDefinitiva(apagarTudo) {
+        async function ejecutarExclusaoDefinitiva(apagarTudo) {
             fecharModalExclusao();
             try {
                 if (itemSendoExcluido.tipo === 'receita_unica' || itemSendoExcluido.tipo === 'receita_recorrente') {
                     if (apagarTudo && itemSendoExcluido.tagGrupo) {
-                        await _supabase.from('receitas').delete().eq('categoria_fixa', itemSendoExcluido.tagGrupo);
+                        // Exclui todas as receitas que tenham a tag desse lote específico na descrição
+                        await _supabase.from('receitas').delete().like('descricao', `%${itemSendoExcluido.tagGrupo}%`);
                     } else {
                         await _supabase.from('receitas').delete().eq('id', itemSendoExcluido.id);
                     }
@@ -535,7 +536,6 @@
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) return;
 
-            // 1. Renderizar Receitas do Mês
             const { data: receitas } = await _supabase.from('receitas')
                 .select('*')
                 .eq('periodo', periodo)
@@ -549,26 +549,31 @@
                 const valor = parseFloat(r.valor);
                 tReceitas += valor;
                 
-                const tipoRec = r.categoria_fixa ? 'receita_recorrente' : 'receita_unica';
+                // Identifica se a receita possui o token de lote na descrição
+                const matchLote = r.descricao.match(/\[REC-\d+\]/);
+                const tokenLote = matchLote ? matchLote[0] : null;
+                const tipoRec = tokenLote ? 'receita_recorrente' : 'receita_unica';
+                
+                // Limpa o token da descrição antes de mostrar na tela para o usuário
+                const descricaoExibicao = r.descricao.replace(/\[REC-\d+\]/, '').trim();
                 
                 containerReceitas.innerHTML += `
                     <div class="bg-slate-900/40 md:bg-transparent border border-slate-800/60 md:border-none rounded-xl p-3 md:p-0 md:py-3 flex flex-col md:flex-row justify-between md:items-center gap-2 md:gap-4 border-b md:border-b border-slate-800/40">
                         <div class="flex-1">
-                            <span class="font-semibold text-slate-100 text-sm md:text-xs">${r.descricao}</span>
+                            <span class="font-semibold text-slate-100 text-sm md:text-xs">${descricaoExibicao}</span>
                             <span class="text-[11px] text-slate-500 block mt-0.5">Categoria: ${r.categoria}</span>
                         </div>
                         <div class="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-1.5 pt-2 md:pt-0 border-t border-slate-800/30 md:border-none">
                             <span class="font-bold text-emerald-400 text-sm md:text-xs">+ R$ ${valor.toFixed(2)}</span>
                             <div class="flex gap-3 text-xs md:text-[10px] font-medium">
                                 <button onclick="abrirModalEdicao('${r.id}', ${valor}, 'receitas')" class="text-indigo-400 hover:text-indigo-300 py-1">Editar R$</button>
-                                <button onclick="tentarExcluirItem('${r.id}', null, '${r.categoria_fixa || ''}', '${tipoRec}')" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
+                                <button onclick="tentarExcluirItem('${r.id}', null, '${tokenLote || ''}', '${tipoRec}')" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
                             </div>
                         </div>
                     </div>
                 `;
             });
 
-            // 2. Renderizar Saídas (Parcelas) do Mês
             const { data: parcelas } = await _supabase.from('parcelas_despesas')
                 .select('*, despesas(*)')
                 .eq('periodo', periodo)
