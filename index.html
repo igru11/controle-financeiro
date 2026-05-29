@@ -197,11 +197,12 @@
         let itemSendoEditado = { id: null, tipoTabela: '' };
         
         // Controle de Exclusão inteligente global
-        let itemSendoExcluido = { id: null, parentId: null, descricaoBase: null, tipo: null };
+        let itemSendoExcluido = { id: null, parentId: null, tagGrupo: null, tipo: null };
 
         const hoje = new Date();
         const mesAtualStr = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
 
+        // Monitor de autenticação limpo e estável para evitar loops no refresh
         _supabase.auth.onAuthStateChange(async (event, session) => {
             if (session) {
                 mostrarDashboard();
@@ -289,42 +290,48 @@
 
         async function salvarReceita(event) {
             event.preventDefault();
-            const { data: { user } } = await _supabase.auth.getUser();
-            
-            const tipo = document.getElementById('rec-tipo').value;
-            const qtdMeses = tipo === 'recorrente' ? parseInt(document.getElementById('rec-meses').value || 1) : 1;
-            const valorInformado = parseFloat(document.getElementById('rec-valor').value);
-            const desc = document.getElementById('rec-desc').value;
-            const cat = document.getElementById('rec-cat').value;
-            
-            const periodoInicial = obterPeriodoSelecionado();
-            let [ano, mes] = periodoInicial.split('-').map(Number);
+            try {
+                const { data: { user } } = await _supabase.auth.getUser();
+                
+                const tipo = document.getElementById('rec-tipo').value;
+                const qtdMeses = tipo === 'recorrente' ? parseInt(document.getElementById('rec-meses').value || 1) : 1;
+                const valorInformado = parseFloat(document.getElementById('rec-valor').value);
+                const desc = document.getElementById('rec-desc').value;
+                const cat = document.getElementById('rec-cat').value;
+                
+                const periodoInicial = obterPeriodoSelecionado();
+                let [ano, mes] = periodoInicial.split('-').map(Number);
 
-            // Criar identificador único de lote para rastrear recorrências de receitas
-            const loteId = tipo === 'recorrente' ? 'LOTE_REC_' + Date.now() : null;
+                // Criamos uma tag de lote limpa usando a descrição base + timestamp para blindar a gravação
+                const sufixoTagLote = tipo === 'recorrente' ? `${desc}_REC_${Date.now()}` : null;
 
-            const receitasInserir = [];
-            for (let i = 1; i <= qtdMeses; i++) {
-                let mesString = String(mes).padStart(2, '0');
-                let periodoParcela = `${ano}-${mesString}`;
+                const receitasInserir = [];
+                for (let i = 1; i <= qtdMeses; i++) {
+                    let mesString = String(mes).padStart(2, '0');
+                    let periodoParcela = `${ano}-${mesString}`;
 
-                receitasInserir.push({
-                    user_id: user.id,
-                    descricao: tipo === 'recorrente' ? `${desc} (${i}/${qtdMeses})` : desc,
-                    valor: valorInformado,
-                    categoria: cat,
-                    periodo: periodoParcela,
-                    categoria_fixa: loteId // Usamos essa coluna para taggear receitas vinculadas
-                });
+                    receitasInserir.push({
+                        user_id: user.id,
+                        descricao: tipo === 'recorrente' ? `${desc} (${i}/${qtdMeses})` : desc,
+                        valor: valorInformado,
+                        categoria: cat,
+                        periodo: periodoParcela,
+                        observacao: sufixoTagLote // Salvamos o agrupador de lote em texto livre na coluna observacao para evitar restrições de tipo de coluna
+                    });
 
-                mes++;
-                if (mes > 12) { mes = 1; ano++; }
+                    mes++;
+                    if (mes > 12) { mes = 1; ano++; }
+                }
+
+                const { error } = await _supabase.from('receitas').insert(receitasInserir);
+                if (error) throw error;
+
+                document.getElementById('form-receita').reset();
+                ajustarCamposReceita();
+                atualizarTudo();
+            } catch (err) {
+                alert("Erro ao salvar receita: " + err.message);
             }
-
-            await _supabase.from('receitas').insert(receitasInserir);
-            document.getElementById('form-receita').reset();
-            ajustarCamposReceita();
-            atualizarTudo();
         }
 
         async function salvarDespesa(event) {
@@ -461,17 +468,17 @@
             atualizarTudo();
         }
 
-        // DISPARADOR DA EXCLUSÃO INTELIGENTE
-        function tentarExcluirItem(id, parentId, desc, tipo) {
-            itemSendoExcluido = { id, parentId, descricaoBase: desc, tipo };
+        // DISPARADOR DA EXCLUSÃO INTELIGENTE CORRIGIDO
+        function tentarExcluirItem(id, parentId, tagGrupo, tipo) {
+            itemSendoExcluido = { id, parentId, tagGrupo, tipo };
 
-            // Se for receita única ou parcela única, apaga direto sem popup legal
+            // Se for receita comum (sem lote/tagGrupo) ou parcela sem id pai, limpa direto
             if (tipo === 'receita_unica' || (tipo === 'despesa' && !parentId)) {
                 executarExclusaoDefinitiva(false);
                 return;
             }
 
-            // Exibe o popup inteligente
+            // Exibe o popup legal customizado
             const modal = document.getElementById('custom-modal-delete');
             modal.classList.remove('hidden');
             setTimeout(() => {
@@ -487,36 +494,33 @@
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
-        async function executarExclusaoDefinitiva(apagarTudo) {
+        async function ejecutarExclusaoDefinitiva(apagarTudo) {
             fecharModalExclusao();
             try {
                 if (itemSendoExcluido.tipo === 'receita_unica' || itemSendoExcluido.tipo === 'receita_recorrente') {
-                    if (apagarTudo && itemSendoExcluido.parentId) {
-                        // Apaga o lote completo da receita recorrente
-                        await _supabase.from('receitas').delete().eq('categoria_fixa', itemSendoExcluido.parentId);
+                    if (apagarTudo && itemSendoExcluido.tagGrupo) {
+                        // Remove todas as receitas vinculadas ao identificador textual do lote
+                        await _supabase.from('receitas').delete().eq('observacao', itemSendoExcluido.tagGrupo);
                     } else {
-                        // Apaga apenas o id isolado do mês
+                        // Remove apenas o lançamento do mês selecionado
                         await _supabase.from('receitas').delete().eq('id', itemSendoExcluido.id);
                     }
                 } else {
-                    // Trata-se de despesas
+                    // Trata-se do fluxo de remoção de despesas
                     if (apagarTudo && itemSendoExcluido.parentId) {
-                        // Apaga todas as parcelas associadas e o pai estrutural
                         await _supabase.from('parcelas_despesas').delete().eq('despesa_id', itemSendoExcluido.parentId);
                         await _supabase.from('despesas').delete().eq('id', itemSendoExcluido.parentId);
                     } else {
-                        // Apaga exclusivamente a parcela deste mês
                         await _supabase.from('parcelas_despesas').delete().eq('id', itemSendoExcluido.id);
                     }
                 }
             } catch (err) {
-                console.error(err);
+                console.error("Erro ao processar exclusão:", err);
             } finally {
                 atualizarTudo();
             }
         }
 
-        // Vinculação das ações dos botões do modal dinâmico
         document.getElementById('btn-delete-only').onclick = () => executarExclusaoDefinitiva(false);
         document.getElementById('btn-delete-all').onclick = () => executarExclusaoDefinitiva(true);
 
@@ -525,7 +529,7 @@
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) return;
 
-            // 1. Renderizar Receitas
+            // 1. Renderizar Receitas do Mês
             const { data: receitas } = await _supabase.from('receitas')
                 .select('*')
                 .eq('periodo', periodo)
@@ -539,8 +543,8 @@
                 const valor = parseFloat(r.valor);
                 tReceitas += valor;
                 
-                // Classifica o tipo da receita para modular o comportamento do botão de exclusão
-                const tipoRec = r.categoria_fixa ? 'receita_recorrente' : 'receita_unica';
+                // Mapeia se a receita é recorrente olhando o campo observacao
+                const tipoRec = r.observacao ? 'receita_recorrente' : 'receita_unica';
                 
                 containerReceitas.innerHTML += `
                     <div class="bg-slate-900/40 md:bg-transparent border border-slate-800/60 md:border-none rounded-xl p-3 md:p-0 md:py-3 flex flex-col md:flex-row justify-between md:items-center gap-2 md:gap-4 border-b md:border-b border-slate-800/40">
@@ -552,14 +556,14 @@
                             <span class="font-bold text-emerald-400 text-sm md:text-xs">+ R$ ${valor.toFixed(2)}</span>
                             <div class="flex gap-3 text-xs md:text-[10px] font-medium">
                                 <button onclick="abrirModalEdicao('${r.id}', ${valor}, 'receitas')" class="text-indigo-400 hover:text-indigo-300 py-1">Editar R$</button>
-                                <button onclick="tentarExcluirItem('${r.id}', '${r.categoria_fixa || ''}', '${r.descricao}', '${tipoRec}')" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
+                                <button onclick="tentarExcluirItem('${r.id}', null, '${r.observacao || ''}', '${tipoRec}')" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
                             </div>
                         </div>
                     </div>
                 `;
             });
 
-            // 2. Renderizar Saídas (Parcelas)
+            // 2. Renderizar Saídas (Parcelas) do Mês
             const { data: parcelas } = await _supabase.from('parcelas_despesas')
                 .select('*, despesas(*)')
                 .eq('periodo', periodo)
@@ -646,7 +650,7 @@
                         <span class="font-bold text-rose-400 text-sm md:text-xs">- R$ ${parseFloat(parcela.valor).toFixed(2)}</span>
                         <div class="flex gap-3 text-xs md:text-[10px] font-medium">
                             <button onclick="abrirModalEdicao('${parcela.id}', ${parcela.valor}, 'parcelas_despesas')" class="text-indigo-400 hover:text-indigo-300 py-1">Editar R$</button>
-                            <button onclick="tentarExcluirItem('${parcela.id}', '${despesa.id}', '${despesa.descricao}', 'despesa')" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
+                            <button onclick="tentarExcluirItem('${parcela.id}', '${despesa.id}', null, 'despesa')" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
                         </div>
                     </div>
                 </div>
@@ -686,13 +690,14 @@
             try { 
                 await _supabase.auth.signOut(); 
             } catch(e) {
-                console.warn("SignOut nativo ignorado.");
+                console.warn("SignOut nativo simplificado.");
             } finally {
-                for (let i = 0; i < localStorage.length; i++) {
+                // Remove estritamente apenas chaves vinculadas ao Supabase
+                for (let i = localStorage.length - 1; i >= 0; i--) {
                     const key = localStorage.key(i);
                     if (key && key.startsWith('sb-')) localStorage.removeItem(key);
                 }
-                window.location.href = window.location.pathname;
+                window.location.reload();
             }
         }
         
