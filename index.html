@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle Financeiro Premium</title>
+    <title>Controle Financeiro Avançado</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
@@ -12,366 +12,373 @@
 
     <div id="auth-container" class="w-full max-w-md bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-700/50 space-y-6">
         <div class="text-center space-y-2">
-            <div class="inline-flex p-3 bg-indigo-600/20 text-indigo-400 rounded-xl mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-            <h2 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Finanças Inteligentes</h2>
-            <p class="text-sm text-slate-400" id="auth-subtitle">Acesse sua conta para gerenciar seu saldo</p>
+            <h2 class="text-3xl font-extrabold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Finanças Pro</h2>
+            <p class="text-sm text-slate-400" id="auth-subtitle">Gerenciamento por período e cartão de crédito</p>
         </div>
-
         <div class="flex border-b border-slate-700">
             <button onclick="mudarAbaAuth('login')" id="btn-aba-login" class="w-1/2 pb-3 font-medium text-sm text-center border-b-2 border-indigo-500 text-slate-100">Entrar</button>
             <button onclick="mudarAbaAuth('cadastro')" id="btn-aba-cadastro" class="w-1/2 pb-3 font-medium text-sm text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200">Criar Conta</button>
         </div>
-
         <form id="auth-form" onsubmit="handleAuth(event)" class="space-y-4">
             <div id="campos-cadastro" class="hidden grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Nome</label>
-                    <input type="text" id="auth-nome" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="João">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Sobrenome</label>
-                    <input type="text" id="auth-sobrenome" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="Silva">
-                </div>
+                <input type="text" id="auth-nome" class="bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm" placeholder="Nome">
+                <input type="text" id="auth-sobrenome" class="bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm" placeholder="Sobrenome">
             </div>
-
-            <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">E-mail</label>
-                <input type="email" id="auth-email" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="seu@email.com">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Senha</label>
-                <input type="password" id="auth-password" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="••••••••">
-            </div>
-            <button type="submit" id="btn-auth-submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition transform hover:-translate-y-0.5">
-                Entrar
-            </button>
+            <input type="email" id="auth-email" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm" placeholder="seu@email.com">
+            <input type="password" id="auth-password" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm" placeholder="Senha">
+            <button type="submit" id="btn-auth-submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-xl transition">Entrar</button>
         </form>
     </div>
 
     <div id="app-dashboard" class="hidden w-full max-w-6xl self-start my-4 md:my-8 space-y-6">
         
-        <header class="flex justify-between items-center bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl">
-            <div class="flex items-center space-x-3">
-                <span class="text-2xl">💰</span>
-                <div>
-                    <h1 class="text-xl font-bold tracking-tight">Minhas Finanças</h1>
-                    <p class="text-xs text-slate-400">Olá, <span id="user-display-name" class="text-indigo-400 font-medium">Usuário</span></p>
-                </div>
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 gap-4 shadow-xl">
+            <div>
+                <h1 class="text-xl font-bold tracking-tight">💰 Sistema Financeiro Inteligente</h1>
+                <p class="text-xs text-slate-400">Olá, <span id="user-display-name" class="text-indigo-400">Usuário</span></p>
             </div>
-            <button onclick="logout()" class="bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-400 px-4 py-2 rounded-xl text-sm font-medium border border-slate-700/50 transition-colors">
-                Sair
-            </button>
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <label class="text-xs text-slate-400 uppercase font-semibold">Mês de Análise:</label>
+                    <input type="month" id="filtro-periodo" onchange="atualizarTudo()" class="bg-transparent text-white font-bold focus:outline-none">
+                </div>
+                <button onclick="logout()" class="bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-400 px-4 py-2 rounded-xl text-sm font-medium border border-slate-700/50 transition-colors">Sair</button>
+            </div>
         </header>
 
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-xl">
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Saldo Geral</p>
-                <p id="card-saldo" class="text-2xl font-bold mt-2 text-slate-100">R$ 0,00</p>
+            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Saldo do Período</p>
+                <p id="card-saldo" class="text-2xl font-bold mt-2">R$ 0,00</p>
             </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-xl border-l-4 border-l-emerald-500">
+            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl border-l-4 border-l-emerald-500">
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Receitas</p>
                 <p id="card-receitas" class="text-2xl font-bold mt-2 text-emerald-400">R$ 0,00</p>
             </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-xl border-l-4 border-l-amber-500">
+            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl border-l-4 border-l-amber-500">
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Despesas Fixas</p>
                 <p id="card-fixas" class="text-2xl font-bold mt-2 text-amber-400">R$ 0,00</p>
             </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-xl border-l-4 border-l-rose-500">
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Despesas Variáveis</p>
+            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl border-l-4 border-l-rose-500">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Despesas Variáveis (Parcelas)</p>
                 <p id="card-variaveis" class="text-2xl font-bold mt-2 text-rose-400">R$ 0,00</p>
             </div>
         </section>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <section class="bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
-                <div class="flex items-center space-x-2 text-emerald-400">
-                    <span class="text-xl">📈</span>
-                    <h2 class="text-md font-semibold uppercase tracking-wider">Nova Receita</h2>
-                </div>
-                <form id="form-receita" onsubmit="salvarReceita(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input type="text" id="rec-desc" placeholder="Ex: Salário" required class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
-                    <input type="number" id="rec-valor" step="0.01" placeholder="Valor (R$)" required class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
-                    <input type="text" id="rec-cat" placeholder="Ex: Trabalho" required class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium p-3 rounded-xl transition sm:col-span-3 text-sm">
-                        Adicionar Receita
-                    </button>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
+                <h2 class="text-sm font-bold text-indigo-400 uppercase tracking-wider">💳 Meus Cartões de Crédito</h2>
+                <form id="form-cartao" onsubmit="salvarCartao(event)" class="space-y-2">
+                    <input type="text" id="cartao-nome" placeholder="Ex: Nubank" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs">
+                    <input type="number" id="cartao-vencimento" placeholder="Dia de Vencimento (1 a 31)" required min="1" max="31" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs">
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium p-2 rounded-xl text-xs">Cadastrar Cartão</button>
+                </form>
+                <div id="lista-cartoes" class="text-xs text-slate-400 space-y-1 divide-y divide-slate-800"></div>
+            </section>
+
+            <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
+                <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider">📈 Nova Receita para o Período</h2>
+                <form id="form-receita" onsubmit="salvarReceita(event)" class="space-y-2">
+                    <input type="text" id="rec-desc" placeholder="Ex: Salário" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs">
+                    <input type="number" id="rec-valor" step="0.01" placeholder="Valor (R$)" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs">
+                    <input type="text" id="rec-cat" placeholder="Ex: Empresa" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs">
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium p-2 rounded-xl text-xs">Adicionar Receita</button>
                 </form>
             </section>
 
-            <section class="bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
-                <div class="flex items-center space-x-2 text-rose-400">
-                    <span class="text-xl">📉</span>
-                    <h2 class="text-md font-semibold uppercase tracking-wider">Nova Despesa</h2>
-                </div>
-                <form id="form-despesa" onsubmit="salvarDespesa(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    <input type="text" id="des-desc" placeholder="Ex: Aluguel" required class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 transition sm:col-span-2">
-                    <input type="number" id="des-valor" step="0.01" placeholder="Valor (R$)" required class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 transition">
-                    <input type="text" id="des-cat" placeholder="Ex: Moradia" required class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 transition">
-                    <select id="des-tipo" required class="bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 transition sm:col-span-4">
-                        <option value="fixa">Despesa Fixa (Contas recorrentes, assinaturas, aluguel)</option>
-                        <option value="variavel">Despesa Variável (Mercado, lazer, imprevistos)</option>
+            <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
+                <h2 class="text-sm font-bold text-rose-400 uppercase tracking-wider">📉 Nova Despesa Avançada</h2>
+                <form id="form-despesa" onsubmit="salvarDespesa(event)" class="space-y-2">
+                    <input type="text" id="des-desc" placeholder="Ex: Compra de Monitor" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs">
+                    <input type="number" id="des-valor" step="0.01" placeholder="Valor total ou da Parcela (R$)" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs">
+                    <input type="text" id="des-cat" placeholder="Ex: Tecnologia" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs">
+                    
+                    <select id="des-tipo" onchange="ajustarCamposDespesa()" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300">
+                        <option value="variavel">Despesa Variável (Eventual ou Parcelada)</option>
+                        <option value="fixa">Despesa Fixa (Recorrente todo mês)</option>
                     </select>
-                    <button type="submit" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-medium p-3 rounded-xl transition sm:col-span-4 text-sm">
-                        Adicionar Despesa
-                    </button>
+
+                    <select id="des-forma" onchange="ajustarCamposDespesa()" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300">
+                        <option value="dinheiro_pix">Dinheiro / PIX / Débito</option>
+                        <option value="credito">Cartão de Crédito</option>
+                    </select>
+
+                    <div id="wrapper-credito" class="hidden space-y-2 border border-slate-800 p-2 rounded-xl bg-slate-950/40">
+                        <select id="des-cartao" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300">
+                            <option value="">Selecione o Cartão...</option>
+                        </select>
+                        <div class="flex items-center gap-2">
+                            <label class="text-[10px] uppercase text-slate-500 font-bold whitespace-nowrap">Qtd Parcelas:</label>
+                            <input type="number" id="des-parcelas" value="1" min="1" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-medium p-2 rounded-xl text-xs">Registrar Despesa</button>
                 </form>
             </section>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <section class="bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl">
-                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Extrato de Entradas</h3>
-                <div class="overflow-x-auto max-h-80 overflow-y-auto">
-                    <table class="w-full text-left border-collapse text-sm">
-                        <thead>
-                            <tr class="border-b border-slate-800 text-slate-500 uppercase text-xs tracking-wider">
-                                <th class="pb-3 font-semibold">Descrição</th>
-                                <th class="pb-3 font-semibold">Categoria</th>
-                                <th class="pb-3 font-semibold text-right">Valor</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-receitas" class="text-slate-300 divide-y divide-slate-800/50"></tbody>
-                    </table>
-                </div>
+            <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Entradas do Período</h3>
+                <div class="overflow-x-auto"><table class="w-full text-left text-xs"><tbody id="tabela-receitas" class="divide-y divide-slate-800"></tbody></table></div>
             </section>
-
-            <section class="bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl">
-                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Extrato de Saídas</h3>
-                <div class="overflow-x-auto max-h-80 overflow-y-auto">
-                    <table class="w-full text-left border-collapse text-sm">
-                        <thead>
-                            <tr class="border-b border-slate-800 text-slate-500 uppercase text-xs tracking-wider">
-                                <th class="pb-3 font-semibold">Descrição</th>
-                                <th class="pb-3 font-semibold">Tipo/Cat</th>
-                                <th class="pb-3 font-semibold text-right">Valor</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-despesas" class="text-slate-300 divide-y divide-slate-800/50"></tbody>
-                    </table>
-                </div>
+            <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Saídas do Período</h3>
+                <div class="overflow-x-auto"><table class="w-full text-left text-xs"><tbody id="tabela-despesas" class="divide-y divide-slate-800"></tbody></table></div>
             </section>
         </div>
     </div>
 
     <script>
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let modoAuth = 'login';
+        let listaGlobalCartoes = [];
 
-        let modoAuth = 'login'; // 'login' ou 'cadastro'
-        let totalReceitas = 0;
-        let totalFixas = 0;
-        let totalVariaveis = 0;
+        // Inicializa o input de período com o mês atual (maio de 2026 com base no contexto do app)
+        document.getElementById('filtro-periodo').value = "2026-05";
 
         _supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
                 mostrarDashboard();
                 buscarNomeUsuario(session.user.id);
-                atualizarTudo();
+                carregarOpcoesCartoes().then(() => {
+                    atualizarTudo();
+                });
             } else {
                 mostrarLogin();
             }
         });
 
-        // Alternar visualmente entre abas de Login e Cadastro
-        function mudarAbaAuth(modo) {
-            modoAuth = modo;
-            const camposCadastro = document.getElementById('campos-cadastro');
-            const btnSubmit = document.getElementById('btn-auth-submit');
-            const subtitle = document.getElementById('auth-subtitle');
-            
-            const inputNome = document.getElementById('auth-nome');
-            const inputSobrenome = document.getElementById('auth-sobrenome');
+        function ajustarCamposDespesa() {
+            const tipo = document.getElementById('des-tipo').value;
+            const forma = document.getElementById('des-forma').value;
+            const wrapperCredito = document.getElementById('wrapper-credito');
+            const inputParcelas = document.getElementById('des-parcelas');
 
-            if (modo === 'cadastro') {
-                camposCadastro.classList.remove('hidden');
-                inputNome.setAttribute('required', 'true');
-                inputSobrenome.setAttribute('required', 'true');
-                
-                btnSubmit.innerText = 'Criar Conta Premium';
-                subtitle.innerText = 'Preencha seus dados para começar';
-                
-                document.getElementById('btn-aba-cadastro').className = "w-1/2 pb-3 font-medium text-sm text-center border-b-2 border-indigo-500 text-slate-100";
-                document.getElementById('btn-aba-login').className = "w-1/2 pb-3 font-medium text-sm text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200";
-            } else {
-                camposCadastro.classList.add('hidden');
-                inputNome.removeAttribute('required');
-                inputSobrenome.removeAttribute('required');
-                
-                btnSubmit.innerText = 'Entrar';
-                subtitle.innerText = 'Acesse sua conta para gerenciar seu saldo';
-                
-                document.getElementById('btn-aba-login').className = "w-1/2 pb-3 font-medium text-sm text-center border-b-2 border-indigo-500 text-slate-100";
-                document.getElementById('btn-aba-cadastro').className = "w-1/2 pb-3 font-medium text-sm text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200";
-            }
-        }
-
-        // Lógica Unificada de Login e Cadastro Inteligente
-        async function handleAuth(event) {
-            event.preventDefault();
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-
-            if (modoAuth === 'login') {
-                const { error } = await _supabase.auth.signInWithPassword({ email, password });
-                if (error) alert("Erro ao entrar: " + error.message);
-            } else {
-                const nome = document.getElementById('auth-nome').value.trim();
-                const sobrenome = document.getElementById('auth-sobrenome').value.trim();
-                const nomeCompleto = `${nome} ${sobrenome}`;
-
-                // Envia dados de cadastro. Passamos o nome completo dentro de 'options.data' 
-                // para que o Supabase disponibilize essa metadata na criação.
-                const { data, error } = await _supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: { full_name: nomeCompleto }
-                    }
-                });
-
-                if (error) {
-                    alert("Erro ao criar conta: " + error.message);
-                } else if (data && data.user) {
-                    // Força a inserção imediata na nossa tabela 'usuarios' publica
-                    const { error: dbError } = await _supabase.from('usuarios').insert([
-                        { id: data.user.id, nome: nomeCompleto }
-                    ]);
-                    
-                    if (dbError) {
-                        console.error("Erro ao salvar perfil, tentando atualizar...", dbError);
-                        // Caso o trigger já tenha rodado antes com a info antiga, fazemos um update
-                        await _supabase.from('usuarios').update({ nome: nomeCompleto }).eq('id', data.user.id);
-                    }
-                    alert("Conta criada com sucesso!");
+            if (forma === 'credito') {
+                wrapperCredito.classList.remove('hidden');
+                if (tipo === 'fixa') {
+                    inputParcelas.value = 1;
+                    inputParcelas.disabled = true; // Fixa vem todo mês, não se parcela a perder de vista
+                } else {
+                    inputParcelas.disabled = false;
                 }
+            } else {
+                wrapperCredito.classList.add('hidden');
             }
         }
 
-        async function logout() { await _supabase.auth.signOut(); }
-
-        function mostrarDashboard() {
-            document.body.className = "bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 min-h-screen text-slate-100 font-sans antialiased flex items-start justify-center p-4 md:p-8";
-            document.getElementById('auth-container').classList.add('hidden');
-            document.getElementById('app-dashboard').classList.remove('hidden');
-        }
-
-        function mostrarLogin() {
-            document.body.className = "bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 min-h-screen text-slate-100 font-sans antialiased flex items-center justify-center p-4";
-            document.getElementById('auth-container').classList.remove('hidden');
-            document.getElementById('app-dashboard').classList.add('hidden');
-            document.getElementById('auth-form').reset();
-            mudarAbaAuth('login');
-        }
-
-        async function buscarNomeUsuario(userId) {
-            const { data, error } = await _supabase.from('usuarios').select('nome').eq('id', userId).single();
-            if (!error && data) {
-                document.getElementById('user-display-name').innerText = data.nome;
-            }
-        }
-
-        async function atualizarTudo() {
-            totalReceitas = 0;
-            totalFixas = 0;
-            totalVariaveis = 0;
-
-            await Promise.all([carregarReceitas(), carregarDespesas()]);
+        async function carregarOpcoesCartoes() {
+            const { data } = await _supabase.from('cartoes').select('*').order('nome', {ascending: true});
+            listaGlobalCartoes = data || [];
             
-            const saldoGeral = totalReceitas - (totalFixas + totalVariaveis);
+            const select = document.getElementById('des-cartao');
+            const listaDiv = document.getElementById('lista-cartoes');
             
-            document.getElementById('card-receitas').innerText = `R$ ${totalReceitas.toFixed(2)}`;
-            document.getElementById('card-fixas').innerText = `R$ ${totalFixas.toFixed(2)}`;
-            document.getElementById('card-variaveis').innerText = `R$ ${totalVariaveis.toFixed(2)}`;
-            
-            const cardSaldo = document.getElementById('card-saldo');
-            cardSaldo.innerText = `R$ ${saldoGeral.toFixed(2)}`;
-            cardSaldo.className = `text-2xl font-bold mt-2 ${saldoGeral < 0 ? 'text-rose-400' : 'text-emerald-400'}`;
+            select.innerHTML = '<option value="">Selecione o Cartão...</option>';
+            listaDiv.innerHTML = '';
+
+            listaGlobalCartoes.forEach(c => {
+                select.innerHTML += `<option value="${c.id}">${c.nome} (Venc. dia ${c.dia_vencimento})</option>`;
+                listaDiv.innerHTML += `<div class="py-1 flex justify-between"><span>💳 ${c.nome}</span><span class="text-slate-500">Vencimento dia ${c.dia_vencimento}</span></div>`;
+            });
         }
 
-        async function carregarReceitas() {
-            const { data, error } = await _supabase.from('receitas').select('*').order('created_at', { ascending: false });
-            const tbody = document.getElementById('tabela-receitas');
-            if (error || !data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-slate-500 text-xs">Nenhuma receita lançada.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = data.map(r => {
-                totalReceitas += parseFloat(r.valor);
-                return `
-                    <tr class="hover:bg-slate-800/10 transition-colors">
-                        <td class="py-3 font-medium text-slate-200">${r.descricao}</td>
-                        <td class="py-3 text-slate-400 text-xs"><span class="bg-slate-800/60 px-2 py-0.5 rounded border border-slate-700/30">${r.categoria}</span></td>
-                        <td class="py-3 text-right font-semibold text-emerald-400">+ R$ ${parseFloat(r.valor).toFixed(2)}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        async function carregarDespesas() {
-            const { data, error } = await _supabase.from('despesas').select('*').order('created_at', { ascending: false });
-            const tbody = document.getElementById('tabela-despesas');
-            if (error || !data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-slate-500 text-xs">Nenhuma despesa lançada.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = data.map(d => {
-                const valor = parseFloat(d.valor);
-                if (d.tipo === 'fixa') totalFixas += valor;
-                else totalVariaveis += valor;
-
-                const badgeCor = d.tipo === 'fixa' ? 'border-amber-500/30 text-amber-400 bg-amber-500/5' : 'border-rose-500/30 text-rose-400 bg-rose-500/5';
-
-                return `
-                    <tr class="hover:bg-slate-800/10 transition-colors">
-                        <td class="py-3 font-medium text-slate-200">${d.descricao}</td>
-                        <td class="py-3 text-xs space-x-1">
-                            <span class="border px-1.5 py-0.5 rounded ${badgeCor}">${d.tipo.toUpperCase()}</span>
-                            <span class="bg-slate-800/60 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700/30">${d.categoria}</span>
-                        </td>
-                        <td class="py-3 text-right font-semibold text-rose-400">- R$ ${valor.toFixed(2)}</td>
-                    </tr>
-                `;
-            }).join('');
+        async function salvarCartao(event) {
+            event.preventDefault();
+            const { data: { user } } = await _supabase.auth.getUser();
+            const dados = {
+                user_id: user.id,
+                nome: document.getElementById('cartao-nome').value,
+                dia_vencimento: parseInt(document.getElementById('cartao-vencimento').value)
+            };
+            await _supabase.from('cartoes').insert([dados]);
+            document.getElementById('form-cartao').reset();
+            carregarOpcoesCartoes();
         }
 
         async function salvarReceita(event) {
             event.preventDefault();
             const { data: { user } } = await _supabase.auth.getUser();
-            
             const dados = {
                 user_id: user.id,
                 descricao: document.getElementById('rec-desc').value,
-                valor: Math.abs(parseFloat(document.getElementById('rec-valor').value)),
-                categoria: document.getElementById('rec-cat').value
+                valor: parseFloat(document.getElementById('rec-valor').value),
+                categoria: document.getElementById('rec-cat').value,
+                periodo: document.getElementById('filtro-periodo').value
             };
-
-            const { error } = await _supabase.from('receitas').insert([dados]);
-            if (!error) {
-                document.getElementById('form-receita').reset();
-                atualizarTudo();
-            }
+            await _supabase.from('receitas').insert([dados]);
+            document.getElementById('form-receita').reset();
+            atualizarTudo();
         }
 
         async function salvarDespesa(event) {
             event.preventDefault();
             const { data: { user } } = await _supabase.auth.getUser();
             
-            const dados = {
+            const tipo = document.getElementById('des-tipo').value;
+            const formaPagamento = document.getElementById('des-forma').value;
+            const totalParcelas = tipo === 'fixa' ? 1 : parseInt(document.getElementById('des-parcelas').value || 1);
+            const valorInformado = parseFloat(document.getElementById('des-valor').value);
+            const cartaoId = document.getElementById('des-cartao').value || null;
+            
+            const despesaBase = {
                 user_id: user.id,
                 descricao: document.getElementById('des-desc').value,
-                valor: Math.abs(parseFloat(document.getElementById('des-valor').value)),
                 categoria: document.getElementById('des-cat').value,
-                tipo: document.getElementById('des-tipo').value
+                tipo: tipo,
+                forma_pagamento: formaPagamento,
+                cartao_id: cartaoId,
+                total_parcelas: totalParcelas
             };
 
-            const { error } = await _supabase.from('despesas').insert([dados]);
-            if (!error) {
-                document.getElementById('form-despesa').reset();
-                atualizarTudo();
+            const { data: despesaSalva, error } = await _supabase.from('despesas').insert([despesaBase]).select().single();
+            if (error) return alert("Erro: " + error.message);
+
+            // Gerar parcelamento / lançamentos no banco de dados
+            const parcelasParaInserir = [];
+            const periodoInicial = document.getElementById('filtro-periodo').value; // '2026-05'
+            let [ano, mes] = periodoInicial.split('-').map(Number);
+
+            // Encontrar o dia do vencimento real
+            let diaVencimento = 10; // default se pago no pix/dinheiro
+            if (formaPagamento === 'credito' && cartaoId) {
+                const c = listaGlobalCartoes.find(item => item.id === cartaoId);
+                if (c) diaVencimento = c.dia_vencimento;
             }
+
+            for (let i = 1; i <= totalParcelas; i++) {
+                // Formata o mês e o ano da parcela subsequente
+                let mesString = mes < 10 ? '0' + mes : mes;
+                let periodoParcela = `${ano}-${mesString}`;
+                let dataVenc = `${ano}-${mesString}-${diaVencimento < 10 ? '0' + diaVencimento : diaVencimento}`;
+
+                parcelasParaInserir.push({
+                    despesa_id: despesaSalva.id,
+                    user_id: user.id,
+                    numero_parcela: i,
+                    valor: valorInformado,
+                    periodo: periodoParcela,
+                    data_vencimento: dataVenc
+                });
+
+                // Incrementa para o próximo mês se for variável parcelada
+                if (tipo === 'variavel') {
+                    mes++;
+                    if (mes > 12) { mes = 1; ano++; }
+                }
+            }
+
+            await _supabase.from('parcelas_despesas').insert(parcelasParaInserir);
+            document.getElementById('form-despesa').reset();
+            ajustarCamposDespesa();
+            atualizarTudo();
+        }
+
+        async function atualizarTudo() {
+            const periodo = document.getElementById('filtro-periodo').value;
+            
+            // 1. Carregar Receitas do período
+            const { data: receitas } = await _supabase.from('receitas').select('*').eq('periodo', periodo);
+            let tReceitas = 0;
+            const tRecBody = document.getElementById('tabela-receitas');
+            tRecBody.innerHTML = '';
+            (receitas || []).forEach(r => {
+                tReceitas += parseFloat(r.valor);
+                tRecBody.innerHTML += `<tr><td class="py-2">${r.descricao}</td><td class="text-slate-400">${r.categoria}</td><td class="text-right text-emerald-400 font-bold">+ R$ ${parseFloat(r.valor).toFixed(2)}</td></tr>`;
+            });
+
+            // 2. Carregar Lançamentos/Parcelas de Despesa do período juntando dados da despesa pai
+            const { data: parcelas } = await _supabase.from('parcelas_despesas').select('*, despesas(*)').eq('periodo', periodo);
+            
+            // Para garantir que despesas FIXAS antigas criadas apareçam sempre no mês atual, simulamos a listagem delas
+            const { data: despesasFixas } = await _supabase.from('despesas').select('*').eq('tipo', 'fixa');
+            
+            let tFixas = 0;
+            let tVariaveis = 0;
+            const tDesBody = document.getElementById('tabela-despesas');
+            tDesBody.innerHTML = '';
+
+            // Mapeia IDs de parcelas mapeadas neste período para evitar duplicar fixas
+            const despesasJaMostradas = [];
+
+            (parcelas || []).forEach(p => {
+                if(!p.despesas) return;
+                despesasJaMostradas.push(p.despesa_id);
+                const valor = parseFloat(p.valor);
+                
+                if (p.despesas.tipo === 'fixa') tFixas += valor;
+                else tVariaveis += valor;
+
+                exibirLinhaDespesa(tDesBody, p.despesas, p.valor, p.numero_parcela, p.data_vencimento);
+            });
+
+            // Se existe uma despesa fixa que NÃO tem uma parcela editada para esse mês específico, ela aparece com seu valor base padrão
+            (despesasFixas || []).forEach(f => {
+                if (!despesasJaMostradas.includes(f.id)) {
+                    // Busca o valor simulado mapeando registros passados ou o primeiro valor inserido na tabela de parcelas
+                    tFixas += 0; // Se não houver lançamento gerado ou herdado neste período
+                    tDesBody.innerHTML += `<tr class="opacity-60"><td class="py-2">🔄 ${f.descricao} (Fixa Recorrente)</td><td class="text-amber-400">FIXA</td><td class="text-right text-amber-500/70">Aguardando Lançamento</td></tr>`;
+                }
+            });
+
+            // Atualiza os Cards
+            document.getElementById('card-receitas').innerText = `R$ ${tReceitas.toFixed(2)}`;
+            document.getElementById('card-fixas').innerText = `R$ ${tFixas.toFixed(2)}`;
+            document.getElementById('card-variaveis').innerText = `R$ ${tVariaveis.toFixed(2)}`;
+            
+            const saldoGeral = tReceitas - (tFixas + tVariaveis);
+            const cardSaldo = document.getElementById('card-saldo');
+            cardSaldo.innerText = `R$ ${saldoGeral.toFixed(2)}`;
+            cardSaldo.className = `text-2xl font-bold mt-2 ${saldoGeral < 0 ? 'text-rose-400' : 'text-emerald-400'}`;
+        }
+
+        function exibirLinhaDespesa(container, despesa, valor, numParcela, vencimento) {
+            const sufixoParcela = despesa.tipo === 'variavel' && despesa.total_parcelas > 1 ? ` (${numParcela}/${despesa.total_parcelas})` : '';
+            const badgeCor = despesa.tipo === 'fixa' ? 'text-amber-400 border-amber-500/30 bg-amber-500/5' : 'text-rose-400 border-rose-500/30 bg-rose-500/5';
+            const infoPgto = despesa.forma_pagamento === 'credito' ? '💳 Crédito' : '💵 PIX/Dinheiro';
+            
+            // Formatando data br
+            const dataBR = vencimento.split('-').reverse().join('/');
+
+            container.innerHTML += `
+                <tr class="hover:bg-slate-800/20 transition-colors">
+                    <td class="py-3 font-medium text-slate-200">${despesa.descricao}${sufixoParcela}<br><span class="text-[10px] text-slate-500">${infoPgto} | Venc: ${dataBR}</span></td>
+                    <td class="py-3"><span class="border px-1.5 py-0.5 text-[10px] rounded ${badgeCor}">${despesa.tipo.toUpperCase()}</span></td>
+                    <td class="py-3 text-right font-semibold text-rose-400">- R$ ${parseFloat(valor).toFixed(2)}</td>
+                </tr>
+            `;
+        }
+
+        // FUNÇÕES COMPLEMENTARES DE AUTH (ABAS)
+        function mudarAbaAuth(modo) {
+            modoAuth = modo;
+            document.getElementById('campos-cadastro').className = modo === 'cadastro' ? 'grid grid-cols-2 gap-3' : 'hidden';
+            document.getElementById('btn-auth-submit').innerText = modo === 'cadastro' ? 'Criar Conta' : 'Entrar';
+            document.getElementById('btn-aba-login').className = modo === 'login' ? "w-1/2 pb-3 text-center border-b-2 border-indigo-500 font-medium text-sm text-slate-100" : "w-1/2 pb-3 text-center border-b-2 border-transparent font-medium text-sm text-slate-400";
+            document.getElementById('btn-aba-cadastro').className = modo === 'cadastro' ? "w-1/2 pb-3 text-center border-b-2 border-indigo-500 font-medium text-sm text-slate-100" : "w-1/2 pb-3 text-center border-b-2 border-transparent font-medium text-sm text-slate-400";
+        }
+
+        async function handleAuth(event) {
+            event.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            if (modoAuth === 'login') {
+                await _supabase.auth.signInWithPassword({ email, password });
+            } else {
+                const nome = document.getElementById('auth-nome').value;
+                const sobrenome = document.getElementById('auth-sobrenome').value;
+                const { data } = await _supabase.auth.signUp({ email, password, options: { data: { full_name: `${nome} ${sobrenome}` } } });
+                if(data?.user) await _supabase.from('usuarios').insert([{ id: data.user.id, nome: `${nome} ${sobrenome}` }]);
+                alert("Conta criada!");
+            }
+        }
+        async function logout() { await _supabase.auth.signOut(); }
+        async function buscarNomeUsuario(userId) {
+            const { data } = await _supabase.from('usuarios').select('nome').eq('id', userId).single();
+            if (data) document.getElementById('user-display-name').innerText = data.nome;
         }
     </script>
 </body>
