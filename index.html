@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Financeiro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+
+    <div class="max-w-4xl mx-auto p-4 md:p-8">
+        
+        <header class="flex justify-between items-center mb-8 bg-white p-6 rounded-xl shadow-sm">
+            <h1 class="text-2xl font-bold text-gray-800">💰 Meu Controle Financeiro</h1>
+            <div id="auth-section">
+                <button onclick="login()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">Entrar com e-mail</button>
+            </div>
+        </header>
+
+        <main id="app-dashboard" class="hidden space-y-6">
+            
+            <section class="bg-white p-6 rounded-xl shadow-sm">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700">Nova Transação</h2>
+                <form id="finance-form" onsubmit="salvarTransacao(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input type="text" id="desc" placeholder="Ex: Mercado" required class="border p-2 rounded-lg w-full">
+                    <input type="number" id="valor" step="0.01" placeholder="Ex: -50.00 ou 1500" required class="border p-2 rounded-lg w-full">
+                    <input type="text" id="cat" placeholder="Ex: Alimentação" required class="border p-2 rounded-lg w-full">
+                    <button type="submit" class="bg-emerald-600 text-white p-2 rounded-lg hover:bg-emerald-700 transition">Adicionar</button>
+                </form>
+            </section>
+
+            <section class="bg-white p-6 rounded-xl shadow-sm">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700">Histórico</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b text-gray-400 uppercase text-xs">
+                                <th class="py-3">Descrição</th>
+                                <th class="py-3">Categoria</th>
+                                <th class="py-3 text-right">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-corpo" class="text-gray-600 divide-y">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO DO SUPABASE
+        const SUPABASE_URL = "https://ifssuvghcgmopeuiqhxw.supabase.co/rest/v1/";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlmc3N1dmdoY2dtb3BldWlxaHh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMTI0MzksImV4cCI6MjA5NTU4ODQzOX0.i5qM90p_QJCCIeZtU-PHzPE8DW0hP-SDn57favjkoKo";
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Monitorar estado de Autenticação
+        _supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                mostrarDashboard();
+                carregarTransacoes();
+            } else {
+                mostrarLogin();
+            }
+        });
+
+        // Função de Login Simples (Abre prompt para testar rápido)
+        async function login() {
+            const email = prompt("Digite seu e-mail:");
+            const password = prompt("Digite sua senha:");
+            if(!email || !password) return;
+
+            const { error } = await _supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                // Se o usuário não existir, tenta cadastrar automaticamente para facilitar
+                const { error: signUpError } = await _supabase.auth.signUp({ email, password });
+                if (signUpError) alert("Erro: " + signUpError.message);
+                else alert("Cadastro realizado! Verifique seu e-mail ou tente logar.");
+            }
+        }
+
+        async function logout() {
+            await _supabase.auth.signOut();
+        }
+
+        // Alternar Telas Visuais
+        function mostrarDashboard() {
+            document.getElementById('app-dashboard').classList.remove('hidden');
+            document.getElementById('auth-section').innerHTML = `<button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Sair</button>`;
+        }
+
+        function mostrarLogin() {
+            document.getElementById('app-dashboard').classList.add('hidden');
+            document.getElementById('auth-section').innerHTML = `<button onclick="login()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Entrar / Cadastrar</button>`;
+            document.getElementById('tabela-corpo').innerHTML = '';
+        }
+
+        // Buscar dados do Banco
+        async function carregarTransacoes() {
+            const { data, error } = await _supabase.from('transacoes').select('*').order('created_at', { ascending: false });
+            if (error) return console.error(error);
+
+            const tbody = document.getElementById('tabela-corpo');
+            tbody.innerHTML = data.map(t => `
+                <tr>
+                    <td class="py-3 font-medium text-gray-800">${t.descricao}</td>
+                    <td class="py-3">${t.categoria}</td>
+                    <td class="py-3 text-right font-bold ${t.valor < 0 ? 'text-red-500' : 'text-emerald-500'}">
+                        R$ ${parseFloat(t.valor).toFixed(2)}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Inserir dados no Banco
+        async function salvarTransacao(event) {
+            event.preventDefault();
+            const { data: { user } } = await _supabase.auth.getUser();
+            
+            const novaTransacao = {
+                user_id: user.id,
+                descricao: document.getElementById('desc').value,
+                valor: parseFloat(document.getElementById('valor').value),
+                categoria: document.getElementById('cat').value
+            };
+
+            const { error } = await _supabase.from('transacoes').insert([novaTransacao]);
+            if (error) alert("Erro ao salvar: " + error.message);
+            else {
+                document.getElementById('finance-form').reset();
+                carregarTransacoes(); // Atualiza a tabela
+            }
+        }
+    </script>
+</body>
+</html>
