@@ -10,7 +10,6 @@
 </head>
 <body class="bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 min-h-screen text-slate-100 font-sans antialiased flex items-center justify-center p-4">
 
-    <!-- 1. TELA DE AUTENTICAÇÃO -->
     <div id="auth-container" class="w-full max-w-md bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-700/50 space-y-6">
         <div class="text-center space-y-2">
             <h2 class="text-3xl font-extrabold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Finanças Pro</h2>
@@ -31,10 +30,8 @@
         </form>
     </div>
 
-    <!-- 2. DASHBOARD PRINCIPAL -->
     <div id="app-dashboard" class="hidden w-full max-w-6xl self-start my-4 md:my-8 space-y-6">
         
-        <!-- CABEÇALHO COM FILTRO DE PERÍODO -->
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 gap-4 shadow-xl">
             <div>
                 <h1 class="text-xl font-bold tracking-tight">💰 Sistema Financeiro Inteligente</h1>
@@ -45,11 +42,10 @@
                     <label class="text-xs text-slate-400 uppercase font-semibold">Mês de Análise:</label>
                     <input type="month" id="filtro-periodo" onchange="atualizarTudo()" class="bg-transparent text-white font-bold focus:outline-none">
                 </div>
-                <button onclick="logout()" class="bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-400 px-4 py-2 rounded-xl text-sm font-medium border border-slate-700/50 transition-colors">Sair</button>
+                <button type="button" onclick="logout()" class="bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-400 px-4 py-2 rounded-xl text-sm font-medium border border-slate-700/50 transition-colors cursor-pointer z-50">Sair</button>
             </div>
         </header>
 
-        <!-- CARDS DE RESUMO -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Saldo do Período</p>
@@ -69,10 +65,8 @@
             </div>
         </section>
 
-        <!-- CENTRAL DE CADASTROS -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- MEUS CARTÕES -->
             <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
                 <h2 class="text-sm font-bold text-indigo-400 uppercase tracking-wider">💳 Meus Cartões de Crédito</h2>
                 <form id="form-cartao" onsubmit="salvarCartao(event)" class="space-y-2">
@@ -83,7 +77,6 @@
                 <div id="lista-cartoes" class="text-xs text-slate-400 space-y-1 divide-y divide-slate-800"></div>
             </section>
 
-            <!-- NOVA RECEITA -->
             <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
                 <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider">📈 Nova Receita para o Período</h2>
                 <form id="form-receita" onsubmit="salvarReceita(event)" class="space-y-2">
@@ -94,17 +87,16 @@
                 </form>
             </section>
 
-            <!-- DESPESA AVANÇADA -->
             <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
                 <h2 class="text-sm font-bold text-rose-400 uppercase tracking-wider">📉 Nova Despesa Avançada</h2>
                 <form id="form-despesa" onsubmit="salvarDespesa(event)" class="space-y-2">
-                    <input type="text" id="des-desc" placeholder="Ex: Curso de Finanças" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
-                    <input type="number" id="des-valor" step="0.01" placeholder="Valor total ou da Parcela (R$)" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
-                    <input type="text" id="des-cat" placeholder="Ex: Educação" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+                    <input type="text" id="des-desc" placeholder="Ex: Internet ou Aluguel" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+                    <input type="number" id="des-valor" step="0.01" placeholder="Valor (R$)" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+                    <input type="text" id="des-cat" placeholder="Ex: Moradia" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
                     
                     <select id="des-tipo" onchange="ajustarCamposDespesa()" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300">
                         <option value="variavel">Despesa Variável (Eventual ou Parcelada)</option>
-                        <option value="fixa">Despesa Fixa (Recorrente todo mês)</option>
+                        <option value="fixa">Despesa Fixa (Gera próximos 12 meses)</option>
                     </select>
 
                     <select id="des-forma" onchange="ajustarCamposDespesa()" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300">
@@ -113,14 +105,13 @@
                         <option value="empresa_parcelado">🏢 Parcelado pela Empresa</option>
                     </select>
 
-                    <!-- Configurações Dinâmicas (Crédito / Empresa) -->
                     <div id="wrapper-opcoes-avancadas" class="hidden space-y-2 border border-slate-800 p-2 rounded-xl bg-slate-950/40">
                         <div id="wrapper-cartao">
                             <select id="des-cartao" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300">
                                 <option value="">Selecione o Cartão...</option>
                             </select>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div id="wrapper-parcelas-input" class="flex items-center gap-2">
                             <label id="label-parcelas" class="text-[10px] uppercase text-slate-500 font-bold whitespace-nowrap">Qtd Parcelas:</label>
                             <input type="number" id="des-parcelas" value="1" min="1" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-white">
                         </div>
@@ -131,7 +122,6 @@
             </section>
         </div>
 
-        <!-- EXTRATOS DO PERÍODO SELECIONADO -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Entradas do Período</h3>
@@ -149,11 +139,9 @@
         let modoAuth = 'login';
         let listaGlobalCartoes = [];
 
-        // Define a data atual globalmente
         const hoje = new Date();
         const mesAtualStr = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
         
-        // Injeta o mês padrão no input logo no início
         document.getElementById('filtro-periodo').value = mesAtualStr;
 
         _supabase.auth.onAuthStateChange(async (event, session) => {
@@ -161,12 +149,9 @@
                 mostrarDashboard();
                 buscarNomeUsuario(session.user.id);
                 await carregarOpcoesCartoes();
-                
-                // Força a garantia de que o campo tem um valor antes de atualizar
                 if (!document.getElementById('filtro-periodo').value) {
                     document.getElementById('filtro-periodo').value = mesAtualStr;
                 }
-                
                 atualizarTudo();
             } else {
                 mostrarLogin();
@@ -178,25 +163,22 @@
             const forma = document.getElementById('des-forma').value;
             const wrapperAvancado = document.getElementById('wrapper-opcoes-avancadas');
             const wrapperCartao = document.getElementById('wrapper-cartao');
-            const inputParcelas = document.getElementById('des-parcelas');
+            const wrapperParcelasInput = document.getElementById('wrapper-parcelas-input');
 
-            if (forma === 'credito' || forma === 'empresa_parcelado') {
+            if (tipo === 'fixa') {
                 wrapperAvancado.classList.remove('hidden');
-                
-                if (forma === 'empresa_parcelado') {
-                    wrapperCartao.classList.add('hidden');
-                } else {
-                    wrapperCartao.classList.remove('hidden');
-                }
-
-                if (tipo === 'fixa') {
-                    inputParcelas.value = 1;
-                    inputParcelas.disabled = true;
-                } else {
-                    inputParcelas.disabled = false;
-                }
+                wrapperParcelasInput.classList.add('hidden');
+                if (forma === 'credito') wrapperCartao.classList.remove('hidden');
+                else wrapperCartao.classList.add('hidden');
             } else {
-                wrapperAvancado.classList.add('hidden');
+                wrapperParcelasInput.classList.remove('hidden');
+                if (forma === 'credito' || forma === 'empresa_parcelado') {
+                    wrapperAvancado.classList.remove('hidden');
+                    if (forma === 'empresa_parcelado') wrapperCartao.classList.add('hidden');
+                    else wrapperCartao.classList.remove('hidden');
+                } else {
+                    wrapperAvancado.classList.add('hidden');
+                }
             }
         }
 
@@ -250,7 +232,7 @@
             
             const tipo = document.getElementById('des-tipo').value;
             const formaPagamento = document.getElementById('des-forma').value;
-            const totalParcelas = tipo === 'fixa' ? 1 : parseInt(document.getElementById('des-parcelas').value || 1);
+            const totalParcelas = tipo === 'fixa' ? 12 : parseInt(document.getElementById('des-parcelas').value || 1);
             const valorInformado = parseFloat(document.getElementById('des-valor').value);
             const cartaoId = formaPagamento === 'credito' ? document.getElementById('des-cartao').value : null;
             
@@ -272,9 +254,18 @@
             const { data: despesaSalva, error } = await _supabase.from('despesas').insert([despesaBase]).select().single();
             if (error) return alert("Erro ao salvar despesa: " + error.message);
 
-            const parcelasParaInserir = [];
             const periodoInicial = document.getElementById('filtro-periodo').value;
-            let [ano, mes] = periodoInicial.split('-').map(Number);
+            await gerarParcelasBanco(despesaSalva.id, user.id, totalParcelas, valorInformado, formaPagamento, cartaoId, periodoInicial, 1);
+            
+            document.getElementById('form-despesa').reset();
+            ajustarCamposDespesa();
+            atualizarTudo();
+        }
+
+        // Função isolada para criar parcelas no banco de dados de forma sequencial
+        async function gerarParcelasBanco(despesaId, userId, qtdMeses, valor, formaPagamento, cartaoId, periodoPartida, numeroParcelaInicial = 1) {
+            const parcelasParaInserir = [];
+            let [ano, mes] = periodoPartida.split('-').map(Number);
 
             let diaVencimento = 5; 
             if (formaPagamento === 'credito' && cartaoId) {
@@ -284,42 +275,76 @@
                 diaVencimento = hoje.getDate(); 
             }
 
-            for (let i = 1; i <= totalParcelas; i++) {
+            let contadorParcela = numeroParcelaInicial;
+            for (let i = 1; i <= qtdMeses; i++) {
                 let mesString = String(mes).padStart(2, '0');
                 let periodoParcela = `${ano}-${mesString}`;
                 let dataVenc = `${ano}-${mesString}-${String(diaVencimento).padStart(2, '0')}`;
 
                 parcelasParaInserir.push({
-                    despesa_id: despesaSalva.id,
-                    user_id: user.id,
-                    numero_parcela: i,
-                    valor: valorInformado,
+                    despesa_id: despesaId,
+                    user_id: userId,
+                    numero_parcela: contadorParcela,
+                    valor: valor,
                     periodo: periodoParcela,
                     data_vencimento: dataVenc
                 });
 
-                if (tipo === 'variavel') {
-                    mes++;
-                    if (mes > 12) { mes = 1; ano++; }
-                }
+                contadorParcela++;
+                mes++;
+                if (mes > 12) { mes = 1; ano++; }
             }
 
             await _supabase.from('parcelas_despesas').insert(parcelasParaInserir);
-            document.getElementById('form-despesa').reset();
-            ajustarCamposDespesa();
+        }
+
+        async function renovarDespesaFixa(despesaId, ultimaParcelaNum, ultimoPeriodo, valor, forma, cartaoId) {
+            if (!confirm("Deseja renovar essa despesa fixa por mais 12 meses?")) return;
+            const { data: { user } } = await _supabase.auth.getUser();
+            
+            // Descobre o próximo mês do calendário a partir da última parcela existente
+            let [ano, mes] = ultimoPeriodo.split('-').map(Number);
+            mes++;
+            if (mes > 12) { mes = 1; ano++; }
+            const proximoPeriodo = `${ano}-${String(mes).padStart(2, '0')}`;
+
+            // Atualiza a tabela pai 'despesas' adicionando mais 12 parcelas ao contador geral
+            const novoTotal = parseInt(ultimaParcelaNum) + 12;
+            await _supabase.from('despesas').update({ total_parcelas: novoTotal }).eq('id', despesaId);
+
+            // Gera as 12 novas parcelas no banco
+            await gerarParcelasBanco(despesaId, user.id, 12, parseFloat(valor), forma, cartaoId, proximoPeriodo, parseInt(ultimaParcelaNum) + 10);
+            
+            alert("Despesa fixa renovada com sucesso por mais 12 meses!");
             atualizarTudo();
+        }
+
+        async function alterarValorParcela(parcelaId, valorAntigo) {
+            const novoValorStr = prompt("Digite o novo valor para esta parcela:", valorAntigo);
+            if (novoValorStr === null) return;
+            const novoValor = parseFloat(novoValorStr);
+            if (isNaN(novoValor) || novoValor <= 0) return alert("Valor inválido.");
+
+            const { error } = await _supabase.from('parcelas_despesas').update({ valor: novoValor }).eq('id', parcelaId);
+            if (error) alert("Erro ao atualizar: " + error.message);
+            else atualizarTudo();
+        }
+
+        async function excluirParcela(parcelaId) {
+            if (!confirm("Tem certeza que deseja excluir esta despesa deste mês específico?")) return;
+            const { error } = await _supabase.from('parcelas_despesas').delete().eq('id', parcelaId);
+            if (error) alert("Erro ao excluir: " + error.message);
+            else atualizarTudo();
         }
 
         async function atualizarTudo() {
             const periodo = document.getElementById('filtro-periodo').value;
-            
-            // Tratamento contra período em branco
             if (!periodo) return;
 
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) return;
 
-            // 1. Busca as Receitas filtrando por período e pelo ID do usuário logado
+            // 1. Carrega Receitas
             const { data: receitas } = await _supabase.from('receitas').select('*').eq('periodo', periodo).eq('user_id', user.id);
             let tReceitas = 0;
             const tRecBody = document.getElementById('tabela-receitas');
@@ -329,39 +354,40 @@
                 tRecBody.innerHTML += `<tr><td class="py-2">${r.descricao}</td><td class="text-slate-400">${r.categoria}</td><td class="text-right text-emerald-400 font-bold">+ R$ ${parseFloat(r.valor).toFixed(2)}</td></tr>`;
             });
 
-            // 2. Busca as Parcelas filtrando por período e pelo ID do usuário logado
+            // 2. Carrega Saídas do Mês Atual
             const { data: parcelas } = await _supabase.from('parcelas_despesas').select('*, despesas(*)').eq('periodo', periodo).eq('user_id', user.id);
-            const { data: despesasFixas } = await _supabase.from('despesas').select('*').eq('tipo', 'fixa').eq('user_id', user.id);
             
             let tFixas = 0;
             let tVariaveis = 0;
             const tDesBody = document.getElementById('tabela-despesas');
             tDesBody.innerHTML = '';
 
-            const despesasJaMostradas = [];
+            if (parcelas) {
+                for (const p of parcelas) {
+                    if (!p.despesas) continue;
+                    const valor = parseFloat(p.valor);
+                    
+                    if (p.despesas.tipo === 'fixa') tFixas += valor;
+                    else tVariaveis += valor;
 
-            (parcelas || []).forEach(p => {
-                if(!p.despesas) return;
-                despesasJaMostradas.push(p.despesa_id);
-                const valor = parseFloat(p.valor);
-                
-                if (p.despesas.tipo === 'fixa') tFixas += valor;
-                else tVariaveis += valor;
+                    // Verifica em tempo real se esta parcela específica é a última existente no banco para esta despesa
+                    let eUltimoMes = false;
+                    if (p.despesas.tipo === 'fixa') {
+                        const { data: tParcelas } = await _supabase.from('parcelas_despesas')
+                            .select('periodo')
+                            .eq('despesa_id', p.despesa_id)
+                            .order('periodo', { ascending: false })
+                            .limit(1);
+                        
+                        if (tParcelas && tParcelas[0]?.periodo === periodo) {
+                            eUltimoMes = true;
+                        }
+                    }
 
-                exibirLinhaDespesa(tDesBody, p.despesas, p.valor, p.numero_parcela, p.data_vencimento);
-            });
-
-            (despesasFixas || []).forEach(f => {
-                if (!despesasJaMostradas.includes(f.id)) {
-                    tDesBody.innerHTML += `<tr class="opacity-40">
-                        <td class="py-2">🔄 ${f.descricao} (Recorrente)</td>
-                        <td><span class="border px-1.5 py-0.5 text-[10px] rounded text-amber-400 border-amber-500/30 bg-amber-500/5">FIXA</span></td>
-                        <td class="text-right text-slate-500">Pendente</td>
-                    </tr>`;
+                    exibirLinhaDespesa(tDesBody, p, p.despesas, eUltimoMes);
                 }
-            });
+            }
 
-            // Renderização atualizada nos cards
             document.getElementById('card-receitas').innerText = `R$ ${tReceitas.toFixed(2)}`;
             document.getElementById('card-fixas').innerText = `R$ ${tFixas.toFixed(2)}`;
             document.getElementById('card-variaveis').innerText = `R$ ${tVariaveis.toFixed(2)}`;
@@ -372,21 +398,44 @@
             cardSaldo.className = `text-2xl font-bold mt-2 ${saldoGeral < 0 ? 'text-rose-400' : 'text-emerald-400'}`;
         }
 
-        function exibirLinhaDespesa(container, despesa, valor, numParcela, vencimento) {
-            const sufixoParcela = despesa.total_parcelas > 1 ? ` (${numParcela}/${despesa.total_parcelas})` : '';
+        function exibirLinhaDespesa(container, parcela, despesa, eUltimoMes) {
+            const sufixoDesc = despesa.tipo === 'fixa' ? ' 🔄' : ` (${parcela.numero_parcela}/${despesa.total_parcelas})`;
             const badgeCor = despesa.tipo === 'fixa' ? 'text-amber-400 border-amber-500/30 bg-amber-500/5' : 'text-rose-400 border-rose-500/30 bg-rose-500/5';
             
             let infoPgto = '💵 PIX/Dinheiro';
             if (despesa.forma_pagamento === 'credito') infoPgto = '💳 Crédito';
             else if (despesa.forma_pagamento === 'empresa_parcelado') infoPgto = '🏢 Corp / Empresa';
 
-            const dataBR = vencimento.split('-').reverse().join('/');
+            const dataBR = parcela.data_vencimento.split('-').reverse().join('/');
+
+            // Cria o Alerta de Último Mês com o botão de renovação caso a validação seja verdadeira
+            let alertaRenovacaoHtml = '';
+            if (eUltimoMes) {
+                alertaRenovacaoHtml = `
+                    <div class="mt-1.5 flex flex-wrap items-center gap-1.5 animate-pulse">
+                        <span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] px-1.5 py-0.5 rounded font-bold">⚠️ ÚLTIMO MÊS</span>
+                        <button onclick="renovarDespesaFixa('${despesa.id}', '${parcela.numero_parcela}', '${parcela.periodo}', ${parcela.valor}, '${despesa.forma_pagamento}', '${despesa.cartao_id}')" class="bg-indigo-600/80 hover:bg-indigo-500 text-white text-[9px] px-2 py-0.5 rounded font-semibold transition-all">
+                            Renovar +12 meses
+                        </button>
+                    </div>
+                `;
+            }
 
             container.innerHTML += `
-                <tr class="hover:bg-slate-800/20 transition-colors border-b border-slate-800/40">
-                    <td class="py-3 font-medium text-slate-200">${despesa.descricao}${sufixoParcela}<br><span class="text-[10px] text-slate-500">${infoPgto} | Venc: ${dataBR}</span></td>
-                    <td class="py-3"><span class="border px-1.5 py-0.5 text-[10px] rounded ${badgeCor}">${despesa.tipo.toUpperCase()}</span></td>
-                    <td class="py-3 text-right font-semibold text-rose-400">- R$ ${parseFloat(valor).toFixed(2)}</td>
+                <tr class="hover:bg-slate-800/20 transition-colors border-b border-slate-800/40 group">
+                    <td class="py-3 font-medium text-slate-200">
+                        ${despesa.descricao}${sufixoDesc}
+                        <br><span class="text-[10px] text-slate-500">${infoPgto} | Venc: ${dataBR}</span>
+                        ${alertaRenovacaoHtml}
+                    </td>
+                    <td class="py-3 items-start"><span class="border px-1.5 py-0.5 text-[10px] rounded ${badgeCor}">${despesa.tipo.toUpperCase()}</span></td>
+                    <td class="py-3 text-right">
+                        <span class="font-semibold text-rose-400">- R$ ${parseFloat(parcela.valor).toFixed(2)}</span>
+                        <div class="text-[10px] space-x-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="alterarValorParcela('${parcela.id}', ${parcela.valor})" class="text-indigo-400 hover:underline">Editar R$</button>
+                            <button onclick="excluirParcela('${parcela.id}')" class="text-rose-500 hover:underline">Excluir</button>
+                        </div>
+                    </td>
                 </tr>
             `;
         }
@@ -420,12 +469,23 @@
             }
         }
 
+        // Função de logout blindada de ponta a ponta
         async function logout() {
-            try { await _supabase.auth.signOut(); } catch(e){}
-            for(let i=0; i<localStorage.length; i++) {
-                if(localStorage.key(i).startsWith('sb-')) localStorage.removeItem(localStorage.key(i));
+            try { 
+                await _supabase.auth.signOut(); 
+            } catch(e) {
+                console.warn("SignOut nativo ignorado ou offline.");
+            } finally {
+                // Remove qualquer token remanescente do cache do navegador
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('sb-')) {
+                        localStorage.removeItem(key);
+                    }
+                }
+                // Redireciona limpando o estado de memória da janela ativa
+                window.location.href = window.location.pathname;
             }
-            window.location.reload();
         }
         
         function mostrarDashboard() {
