@@ -10,7 +10,6 @@
 </head>
 <body class="bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 min-h-screen text-slate-100 font-sans antialiased flex items-center justify-center p-4">
 
-    <!-- 1. TELA DE AUTENTICAÇÃO -->
     <div id="auth-container" class="w-full max-w-md bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-700/50 space-y-6">
         <div class="text-center space-y-2">
             <h2 class="text-3xl font-extrabold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Finanças Pro</h2>
@@ -22,19 +21,17 @@
         </div>
         <form id="auth-form" onsubmit="handleAuth(event)" class="space-y-4">
             <div id="campos-cadastro" class="hidden grid grid-cols-2 gap-3">
-                <input type="text" id="auth-nome" class="bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Nome">
-                <input type="text" id="auth-sobrenome" class="bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Sobrenome">
+                <input type="text" id="auth-nome" class="bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none" placeholder="Nome">
+                <input type="text" id="auth-sobrenome" class="bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none" placeholder="Sobrenome">
             </div>
-            <input type="email" id="auth-email" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="seu@email.com">
-            <input type="password" id="auth-password" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Senha">
+            <input type="email" id="auth-email" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none" placeholder="seu@email.com">
+            <input type="password" id="auth-password" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none" placeholder="Senha">
             <button type="submit" id="btn-auth-submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-xl transition">Entrar</button>
         </form>
     </div>
 
-    <!-- 2. DASHBOARD PRINCIPAL -->
     <div id="app-dashboard" class="hidden w-full max-w-6xl self-start my-4 md:my-8 space-y-6">
         
-        <!-- CABEÇALHO COM FILTRO DE PERÍODO -->
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-900/60 backdrop-blur-md p-6 rounded-2xl border border-slate-800 gap-4 shadow-xl">
             <div>
                 <h1 class="text-xl font-bold tracking-tight">💰 Sistema Financeiro Inteligente</h1>
@@ -49,7 +46,6 @@
             </div>
         </header>
 
-        <!-- CARDS DE RESUMO -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Saldo do Período</p>
@@ -69,10 +65,8 @@
             </div>
         </section>
 
-        <!-- CENTRAL DE CADASTROS -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- MEUS CARTÕES -->
             <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
                 <h2 class="text-sm font-bold text-indigo-400 uppercase tracking-wider">💳 Meus Cartões de Crédito</h2>
                 <form id="form-cartao" onsubmit="salvarCartao(event)" class="space-y-2">
@@ -83,7 +77,6 @@
                 <div id="lista-cartoes" class="text-xs text-slate-400 space-y-1 divide-y divide-slate-800"></div>
             </section>
 
-            <!-- NOVA RECEITA -->
             <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
                 <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider">📈 Nova Receita para o Período</h2>
                 <form id="form-receita" onsubmit="salvarReceita(event)" class="space-y-2">
@@ -94,13 +87,12 @@
                 </form>
             </section>
 
-            <!-- DESPESA AVANÇADA -->
             <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
                 <h2 class="text-sm font-bold text-rose-400 uppercase tracking-wider">📉 Nova Despesa Avançada</h2>
                 <form id="form-despesa" onsubmit="salvarDespesa(event)" class="space-y-2">
-                    <input type="text" id="des-desc" placeholder="Ex: Compra de Monitor" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+                    <input type="text" id="des-desc" placeholder="Ex: Curso de Finanças" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
                     <input type="number" id="des-valor" step="0.01" placeholder="Valor total ou da Parcela (R$)" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
-                    <input type="text" id="des-cat" placeholder="Ex: Tecnologia" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+                    <input type="text" id="des-cat" placeholder="Ex: Educação" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
                     
                     <select id="des-tipo" onchange="ajustarCamposDespesa()" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300">
                         <option value="variavel">Despesa Variável (Eventual ou Parcelada)</option>
@@ -110,15 +102,17 @@
                     <select id="des-forma" onchange="ajustarCamposDespesa()" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300">
                         <option value="dinheiro_pix">Dinheiro / PIX / Débito</option>
                         <option value="credito">Cartão de Crédito</option>
+                        <option value="empresa_parcelado">🏢 Parcelado pela Empresa</option>
                     </select>
 
-                    <!-- Configurações do Crédito -->
-                    <div id="wrapper-credito" class="hidden space-y-2 border border-slate-800 p-2 rounded-xl bg-slate-950/40">
-                        <select id="des-cartao" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300">
-                            <option value="">Selecione o Cartão...</option>
-                        </select>
+                    <div id="wrapper-opcoes-avancadas" class="hidden space-y-2 border border-slate-800 p-2 rounded-xl bg-slate-950/40">
+                        <div id="wrapper-cartao">
+                            <select id="des-cartao" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300">
+                                <option value="">Selecione o Cartão...</option>
+                            </select>
+                        </div>
                         <div class="flex items-center gap-2">
-                            <label class="text-[10px] uppercase text-slate-500 font-bold whitespace-nowrap">Qtd Parcelas:</label>
+                            <label id="label-parcelas" class="text-[10px] uppercase text-slate-500 font-bold whitespace-nowrap">Qtd Parcelas:</label>
                             <input type="number" id="des-parcelas" value="1" min="1" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-white">
                         </div>
                     </div>
@@ -128,7 +122,6 @@
             </section>
         </div>
 
-        <!-- EXTRATOS DO PERÍODO SELECIONADO -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <section class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Entradas do Período</h3>
@@ -146,12 +139,10 @@
         let modoAuth = 'login';
         let listaGlobalCartoes = [];
 
-        // Define o seletor padrão para o mês atual dinamicamente
         const hoje = new Date();
         const mesAtualStr = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
         document.getElementById('filtro-periodo').value = mesAtualStr;
 
-        // Escuta o estado da autenticação de forma segura
         _supabase.auth.onAuthStateChange(async (event, session) => {
             if (session) {
                 mostrarDashboard();
@@ -166,11 +157,19 @@
         function ajustarCamposDespesa() {
             const tipo = document.getElementById('des-tipo').value;
             const forma = document.getElementById('des-forma').value;
-            const wrapperCredito = document.getElementById('wrapper-credito');
+            const wrapperAvancado = document.getElementById('wrapper-opcoes-avancadas');
+            const wrapperCartao = document.getElementById('wrapper-cartao');
             const inputParcelas = document.getElementById('des-parcelas');
 
-            if (forma === 'credito') {
-                wrapperCredito.classList.remove('hidden');
+            if (forma === 'credito' || forma === 'empresa_parcelado') {
+                wrapperAvancado.classList.remove('hidden');
+                
+                if (forma === 'empresa_parcelado') {
+                    wrapperCartao.classList.add('hidden'); // Empresa não precisa selecionar cartão
+                } else {
+                    wrapperCartao.classList.remove('hidden');
+                }
+
                 if (tipo === 'fixa') {
                     inputParcelas.value = 1;
                     inputParcelas.disabled = true;
@@ -178,7 +177,7 @@
                     inputParcelas.disabled = false;
                 }
             } else {
-                wrapperCredito.classList.add('hidden');
+                wrapperAvancado.classList.add('hidden');
             }
         }
 
@@ -186,21 +185,16 @@
             try {
                 const { data, error } = await _supabase.from('cartoes').select('*').order('nome', {ascending: true});
                 if (error) throw error;
-                
                 listaGlobalCartoes = data || [];
                 const select = document.getElementById('des-cartao');
                 const listaDiv = document.getElementById('lista-cartoes');
-                
                 select.innerHTML = '<option value="">Selecione o Cartão...</option>';
                 listaDiv.innerHTML = '';
-
                 listaGlobalCartoes.forEach(c => {
                     select.innerHTML += `<option value="${c.id}">${c.nome} (Venc. dia ${c.dia_vencimento})</option>`;
                     listaDiv.innerHTML += `<div class="py-1 flex justify-between"><span>💳 ${c.nome}</span><span class="text-slate-500">Vencimento dia ${c.dia_vencimento}</span></div>`;
                 });
-            } catch (err) {
-                console.error("Erro ao carregar cartões:", err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         async function salvarCartao(event) {
@@ -239,7 +233,7 @@
             const formaPagamento = document.getElementById('des-forma').value;
             const totalParcelas = tipo === 'fixa' ? 1 : parseInt(document.getElementById('des-parcelas').value || 1);
             const valorInformado = parseFloat(document.getElementById('des-valor').value);
-            const cartaoId = document.getElementById('des-cartao').value || null;
+            const cartaoId = formaPagamento === 'credito' ? document.getElementById('des-cartao').value : null;
             
             if (formaPagamento === 'credito' && !cartaoId) {
                 alert("Por favor, selecione um cartão de crédito.");
@@ -257,16 +251,19 @@
             };
 
             const { data: despesaSalva, error } = await _supabase.from('despesas').insert([despesaBase]).select().single();
-            if (error) return alert("Erro ao salvar despesa mestre: " + error.message);
+            if (error) return alert("Erro ao salvar despesa: " + error.message);
 
             const parcelasParaInserir = [];
             const periodoInicial = document.getElementById('filtro-periodo').value;
             let [ano, mes] = periodoInicial.split('-').map(Number);
 
-            let diaVencimento = 10; 
+            // Regra do dia do vencimento:
+            let diaVencimento = 5; // Default para parcelas da empresa (ex: quinto dia útil / dia do salário)
             if (formaPagamento === 'credito' && cartaoId) {
                 const c = listaGlobalCartoes.find(item => item.id === cartaoId);
                 if (c) diaVencimento = c.dia_vencimento;
+            } else if (formaPagamento === 'dinheiro_pix') {
+                diaVencimento = hoje.getDate(); // dia de hoje para compras à vista
             }
 
             for (let i = 1; i <= totalParcelas; i++) {
@@ -299,7 +296,6 @@
             const periodo = document.getElementById('filtro-periodo').value;
             if (!periodo) return;
 
-            // 1. Receitas
             const { data: receitas } = await _supabase.from('receitas').select('*').eq('periodo', periodo);
             let tReceitas = 0;
             const tRecBody = document.getElementById('tabela-receitas');
@@ -309,7 +305,6 @@
                 tRecBody.innerHTML += `<tr><td class="py-2">${r.descricao}</td><td class="text-slate-400">${r.categoria}</td><td class="text-right text-emerald-400 font-bold">+ R$ ${parseFloat(r.valor).toFixed(2)}</td></tr>`;
             });
 
-            // 2. Despesas / Parcelas
             const { data: parcelas } = await _supabase.from('parcelas_despesas').select('*, despesas(*)').eq('periodo', periodo);
             const { data: despesasFixas } = await _supabase.from('despesas').select('*').eq('tipo', 'fixa');
             
@@ -331,7 +326,6 @@
                 exibirLinhaDespesa(tDesBody, p.despesas, p.valor, p.numero_parcela, p.data_vencimento);
             });
 
-            // Exibe fixas sem lançamento manual com valor zerado/estimado
             (despesasFixas || []).forEach(f => {
                 if (!despesasJaMostradas.includes(f.id)) {
                     tDesBody.innerHTML += `<tr class="opacity-40">
@@ -353,9 +347,13 @@
         }
 
         function exibirLinhaDespesa(container, despesa, valor, numParcela, vencimento) {
-            const sufixoParcela = despesa.tipo === 'variavel' && despesa.total_parcelas > 1 ? ` (${numParcela}/${despesa.total_parcelas})` : '';
+            const sufixoParcela = despesa.total_parcelas > 1 ? ` (${numParcela}/${despesa.total_parcelas})` : '';
             const badgeCor = despesa.tipo === 'fixa' ? 'text-amber-400 border-amber-500/30 bg-amber-500/5' : 'text-rose-400 border-rose-500/30 bg-rose-500/5';
-            const infoPgto = despesa.forma_pagamento === 'credito' ? '💳 Crédito' : '💵 PIX/Dinheiro';
+            
+            let infoPgto = '💵 PIX/Dinheiro';
+            if (despesa.forma_pagamento === 'credito') infoPgto = '💳 Crédito';
+            else if (despesa.forma_pagamento === 'empresa_parcelado') infoPgto = '🏢 Corp / Empresa';
+
             const dataBR = vencimento.split('-').reverse().join('/');
 
             container.innerHTML += `
@@ -379,51 +377,41 @@
             event.preventDefault();
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value;
-            
             if (modoAuth === 'login') {
                 const { error } = await _supabase.auth.signInWithPassword({ email, password });
                 if (error) alert("Erro ao fazer login: " + error.message);
             } else {
                 const nome = document.getElementById('auth-nome').value.trim();
                 const sobrenome = document.getElementById('auth-sobrenome').value.trim();
-                
-                if(!nome || !sobrenome) {
-                    alert("Por favor, preencha nome e sobrenome.");
-                    return;
-                }
-
-                const { data, error } = await _supabase.auth.signUp({ 
-                    email, 
-                    password, 
-                    options: { data: { full_name: `${nome} ${sobrenome}` } } 
-                });
-                
-                if (error) {
-                    alert("Erro no cadastro: " + error.message);
-                } else {
-                    if(data?.user) {
-                        await _supabase.from('usuarios').insert([{ id: data.user.id, nome: `${nome} ${sobrenome}` }]);
-                    }
-                    alert("Conta criada com sucesso! Faça o login.");
+                if(!nome || !sobrenome) return alert("Preencha o nome completo.");
+                const { data, error } = await _supabase.auth.signUp({ email, password, options: { data: { full_name: `${nome} ${sobrenome}` } } });
+                if (error) alert(error.message);
+                else {
+                    if(data?.user) await _supabase.from('usuarios').insert([{ id: data.user.id, nome: `${nome} ${sobrenome}` }]);
+                    alert("Conta criada!");
                     mudarAbaAuth('login');
                 }
             }
         }
 
-        async function logout() { await _supabase.auth.signOut(); }
+        async function logout() {
+            try { await _supabase.auth.signOut(); } catch(e){}
+            for(let i=0; i<localStorage.length; i++) {
+                if(localStorage.key(i).startsWith('sb-')) localStorage.removeItem(localStorage.key(i));
+            }
+            window.location.reload();
+        }
         
         function mostrarDashboard() {
             document.getElementById('auth-container').classList.add('hidden');
             document.getElementById('app-dashboard').classList.remove('hidden');
-            document.body.className = "bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 min-h-screen text-slate-100 font-sans antialiased flex items-start justify-center p-4 md:p-8";
+            document.body.className = "bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 min-h-screen text-slate-100 font-sans flex items-start justify-center p-4 md:p-8";
         }
-
         function mostrarLogin() {
             document.getElementById('auth-container').classList.remove('hidden');
             document.getElementById('app-dashboard').classList.add('hidden');
-            document.body.className = "bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 min-h-screen text-slate-100 font-sans antialiased flex items-center justify-center p-4";
+            document.body.className = "bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 min-h-screen text-slate-100 font-sans flex items-center justify-center p-4";
         }
-
         async function buscarNomeUsuario(userId) {
             const { data } = await _supabase.from('usuarios').select('nome').eq('id', userId).single();
             if (data) document.getElementById('user-display-name').innerText = data.nome;
