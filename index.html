@@ -191,7 +191,6 @@
     </div>
 
     <script>
-        // Trava 1: Garante inicialização segura do Supabase mesmo se as chaves falharem
         let _supabase;
         try {
             if (typeof SUPABASE_URL !== 'undefined' && typeof SUPABASE_KEY !== 'undefined') {
@@ -376,7 +375,6 @@
             }
         }
 
-        // Trava 2: Tratamento antifraude de inputs e manipulação de travamentos na despesa
         async function salvarDespesa(event) {
             event.preventDefault();
             if (!usuarioLogado || !_supabase) return;
@@ -393,7 +391,6 @@
             const tipo = document.getElementById('des-tipo').value;
             const formaPagamento = document.getElementById('des-forma').value;
             
-            // Definição inteligente e segura das parcelas totais
             let totalParcelas = 1;
             if (tipo === 'fixa') {
                 totalParcelas = 12;
@@ -409,7 +406,6 @@
                 return;
             }
 
-            // Ativa loader visual no botão para travar cliques duplos inadvertidos
             btnSubmit.innerText = "Salvando...";
             btnSubmit.disabled = true;
 
@@ -437,7 +433,6 @@
                 console.error("Erro crítico ao salvar despesa:", err);
                 alert("Não foi possível registrar a despesa. Erro: " + (err.message || "Conexão com o banco falhou"));
             } finally {
-                // Restaura o estado original do botão
                 btnSubmit.innerText = "Registrar Despesa";
                 btnSubmit.disabled = false;
             }
@@ -551,8 +546,15 @@
             }
         }
 
+        // TRAVA DE SEGURANÇA CONTRA CONGELAMENTO NA DELEÇÃO
         function tentarExcluirItem(id, parentId, tagGrupo, tipo, totalParcelas = 1) {
-            itemSendoExcluido = { id, parentId, tagGrupo, tipo };
+            // Garante proteção de tipos e strings nulas para evitar quebra do estado JS
+            itemSendoExcluido = { 
+                id: id || null, 
+                parentId: parentId || null, 
+                tagGrupo: tagGrupo || '', 
+                tipo: tipo || '' 
+            };
 
             if (tipo === 'receita_unica' || (tipo === 'despesa' && parseInt(totalParcelas || 1) <= 1)) {
                 if (confirm("Tem certeza que deseja excluir esta movimentação?")) {
@@ -562,47 +564,72 @@
             }
 
             const modal = document.getElementById('custom-modal-delete');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modal.firstElementChild.classList.remove('scale-95');
-            }, 10);
+            if (modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    if (modal.firstElementChild) modal.firstElementChild.classList.remove('scale-95');
+                }, 10);
+            }
         }
 
         function fecharModalExclusao() {
             const modal = document.getElementById('custom-modal-delete');
+            if (!modal) return;
             modal.classList.add('opacity-0');
-            modal.firstElementChild.classList.add('scale-95');
+            if (modal.firstElementChild) modal.firstElementChild.classList.add('scale-95');
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
         async function ejecutarExclusaoDefinitiva(apagarTudo) {
             if (!_supabase) return;
             fecharModalExclusao();
+            
             try {
                 if (itemSendoExcluido.tipo === 'receita_unica' || itemSendoExcluido.tipo === 'receita_recorrente') {
                     if (apagarTudo && itemSendoExcluido.tagGrupo) {
-                        await _supabase.from('receitas').delete().like('descricao', `%[${itemSendoExcluido.tagGrupo}]%`);
-                    } else {
-                        await _supabase.from('receitas').delete().eq('id', itemSendoExcluido.id);
+                        const { error } = await _supabase.from('receitas').delete().like('descricao', `%[${itemSendoExcluido.tagGrupo}]%`);
+                        if (error) throw error;
+                    } else if (itemSendoExcluido.id) {
+                        const { error } = await _supabase.from('receitas').delete().eq('id', itemSendoExcluido.id);
+                        if (error) throw error;
                     }
                 } else {
+                    // RESOLUÇÃO DA TRAVA: Respeita integridade referencial deletando primeiro os filhos (parcelas)
                     if (apagarTudo && itemSendoExcluido.parentId) {
-                        await _supabase.from('parcelas_despesas').delete().eq('despesa_id', itemSendoExcluido.parentId);
-                        await _supabase.from('despesas').delete().eq('id', itemSendoExcluido.parentId);
-                    } else {
-                        await _supabase.from('parcelas_despesas').delete().eq('id', itemSendoExcluido.id);
+                        // 1. Apaga todas as parcelas atreladas àquela ID de despesa pai
+                        const { error: errFilhos } = await _supabase.from('parcelas_despesas').delete().eq('despesa_id', itemSendoExcluido.parentId);
+                        if (errFilhos) throw errFilhos;
+
+                        // 2. Agora sim, apaga com segurança o registro pai sem travar devido a restrições de Foreign Key
+                        const { error: errPai } = await _supabase.from('despesas').delete().eq('id', itemSendoExcluido.parentId);
+                        if (errPai) throw errPai;
+                    } else if (itemSendoExcluido.id) {
+                        // Se for deletar apenas a parcela isolada do mês atual, não quebra restrições
+                        const { error: errParcelaUnica } = await _supabase.from('parcelas_despesas').delete().eq('id', itemSendoExcluido.id);
+                        if (errParcelaUnica) throw errParcelaUnica;
                     }
                 }
             } catch (err) {
-                console.error("Erro ao processar exclusão:", err);
+                console.error("Erro crítico processado ao tentar excluir registro:", err);
+                alert("Não foi possível excluir. Motivo: " + (err.message || "Conexão interrompida"));
             } finally {
+                // Força a limpeza e reinicialização segura dos dados visuais na tela
+                itemSendoExcluido = { id: null, parentId: null, tagGrupo: null, tipo: null };
                 await atualizarTudo();
             }
         }
 
-        document.getElementById('btn-delete-only').onclick = () => ejecutarExclusaoDefinitiva(false);
-        document.getElementById('btn-delete-all').onclick = () => ejecutarExclusaoDefinitiva(true);
+        document.getElementById('btn-delete-only').onclick = () => verificarEExecutar(false);
+        document.getElementById('btn-delete-all').onclick = () => verificarEExecutar(true);
+
+        function verificarEExecutar(opcao) {
+            if (itemSendoExcluido.id || itemSendoExcluido.parentId) {
+                ejecutarExclusaoDefinitiva(opcao);
+            } else {
+                fecharModalExclusao();
+            }
+        }
 
         async function atualizarTudo() {
             if (!usuarioLogado || !_supabase) return;
