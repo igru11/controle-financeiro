@@ -128,7 +128,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-medium p-2.5 rounded-xl text-xs">Registrar Despesa</button>
+                    <button type="submit" id="btn-registrar-despesa" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-medium p-2.5 rounded-xl text-xs">Registrar Despesa</button>
                 </form>
             </section>
         </div>
@@ -191,47 +191,69 @@
     </div>
 
     <script>
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Trava 1: Garante inicialização segura do Supabase mesmo se as chaves falharem
+        let _supabase;
+        try {
+            if (typeof SUPABASE_URL !== 'undefined' && typeof SUPABASE_KEY !== 'undefined') {
+                _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            } else {
+                console.error("Variáveis de configuração do Supabase não encontradas no config.js");
+            }
+        } catch (e) {
+            console.error("Erro fatal ao carregar biblioteca do Supabase:", e);
+        }
+
         let modoAuth = 'login';
         let listaGlobalCartoes = [];
         let itemSendoEditado = { id: null, tipoTabela: '' };
         let itemSendoExcluido = { id: null, parentId: null, tagGrupo: null, tipo: null };
-        
         let usuarioLogado = null; 
 
         const hoje = new Date();
         const mesAtualStr = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
 
         async function inicializarApp() {
+            if (!_supabase) {
+                alert("Erro de configuração: Verifique se o seu arquivo config.js está correto e na mesma pasta.");
+                return;
+            }
             const filtroInput = document.getElementById('filtro-periodo');
             if (filtroInput) {
                 filtroInput.value = mesAtualStr;
             }
 
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (session && session.user) {
-                usuarioLogado = session.user;
-                mostrarDashboard();
-                buscarNomeUsuario(usuarioLogado.id);
-                await carregarOpcoesCartoes();
-                await atualizarTudo();
-            } else {
+            try {
+                const { data: { session }, error } = await _supabase.auth.getSession();
+                if (error) throw error;
+                if (session && session.user) {
+                    usuarioLogado = session.user;
+                    mostrarDashboard();
+                    buscarNomeUsuario(usuarioLogado.id);
+                    await carregarOpcoesCartoes();
+                    await atualizarTudo();
+                } else {
+                    mostrarLogin();
+                }
+            } catch (err) {
+                console.error("Erro na sessão inicial:", err);
                 mostrarLogin();
             }
         }
 
-        _supabase.auth.onAuthStateChange(async (event, session) => {
-            if (session && session.user) {
-                usuarioLogado = session.user;
-                mostrarDashboard();
-                buscarNomeUsuario(usuarioLogado.id);
-                await carregarOpcoesCartoes();
-                await atualizarTudo();
-            } else {
-                usuarioLogado = null;
-                mostrarLogin();
-            }
-        });
+        if (_supabase) {
+            _supabase.auth.onAuthStateChange(async (event, session) => {
+                if (session && session.user) {
+                    usuarioLogado = session.user;
+                    mostrarDashboard();
+                    buscarNomeUsuario(usuarioLogado.id);
+                    await carregarOpcoesCartoes();
+                    await atualizarTudo();
+                } else {
+                    usuarioLogado = null;
+                    mostrarLogin();
+                }
+            });
+        }
 
         window.addEventListener('DOMContentLoaded', inicializarApp);
 
@@ -275,6 +297,7 @@
         }
 
         async function carregarOpcoesCartoes() {
+            if (!_supabase) return;
             try {
                 const { data, error } = await _supabase.from('cartoes').select('*').order('nome', {ascending: true});
                 if (error) throw error;
@@ -288,25 +311,29 @@
                     select.innerHTML += `<option value="${c.id}">${c.nome} (Venc. dia ${c.dia_vencimento})</option>`;
                     listaDiv.innerHTML += `<div class="py-1.5 flex justify-between text-xs"><span>💳 ${c.nome}</span><span class="text-slate-500">Venc. dia ${c.dia_vencimento}</span></div>`;
                 });
-            } catch (err) { console.error(err); }
+            } catch (err) { console.error("Erro ao carregar cartões:", err); }
         }
 
         async function salvarCartao(event) {
             event.preventDefault();
-            if (!usuarioLogado) return;
-            const dados = {
-                user_id: usuarioLogado.id,
-                nome: document.getElementById('cartao-nome').value,
-                dia_vencimento: parseInt(document.getElementById('cartao-vencimento').value)
-            };
-            await _supabase.from('cartoes').insert([dados]);
-            document.getElementById('form-cartao').reset();
-            await carregarOpcoesCartoes();
+            if (!usuarioLogado || !_supabase) return;
+            try {
+                const dados = {
+                    user_id: usuarioLogado.id,
+                    nome: document.getElementById('cartao-nome').value,
+                    dia_vencimento: parseInt(document.getElementById('cartao-vencimento').value)
+                };
+                await _supabase.from('cartoes').insert([dados]);
+                document.getElementById('form-cartao').reset();
+                await carregarOpcoesCartoes();
+            } catch (e) {
+                alert("Erro ao cadastrar cartão.");
+            }
         }
 
         async function salvarReceita(event) {
             event.preventDefault();
-            if (!usuarioLogado) return;
+            if (!usuarioLogado || !_supabase) return;
             try {
                 const tipo = document.getElementById('rec-tipo').value;
                 const qtdMeses = tipo === 'recorrente' ? parseInt(document.getElementById('rec-meses').value || 1) : 1;
@@ -349,42 +376,75 @@
             }
         }
 
+        // Trava 2: Tratamento antifraude de inputs e manipulação de travamentos na despesa
         async function salvarDespesa(event) {
             event.preventDefault();
-            if (!usuarioLogado) return;
-            const tipo = document.getElementById('des-tipo').value;
-            const formaPagamento = document.getElementById('des-forma').value;
-            const totalParcelas = tipo === 'fixa' ? 12 : parseInt(document.getElementById('des-parcelas').value || 1);
-            const valorInformado = parseFloat(document.getElementById('des-valor').value);
-            const cartaoId = formaPagamento === 'credito' ? document.getElementById('des-cartao').value : null;
+            if (!usuarioLogado || !_supabase) return;
+
+            const btnSubmit = document.getElementById('btn-registrar-despesa');
+            const valorInput = document.getElementById('des-valor').value;
+            const valorInformado = parseFloat(valorInput);
             
-            if (formaPagamento === 'credito' && !cartaoId) {
-                alert("Por favor, selecione um cartão de crédito.");
+            if (isNaN(valorInformado) || valorInformado <= 0) {
+                alert("Por favor, informe um valor numérico válido e maior que zero.");
                 return;
             }
 
-            const despesaBase = {
-                user_id: usuarioLogado.id,
-                descricao: document.getElementById('des-desc').value,
-                categoria: document.getElementById('des-cat').value,
-                tipo: tipo,
-                forma_pagamento: formaPagamento,
-                cartao_id: cartaoId,
-                total_parcelas: totalParcelas
-            };
-
-            const { data: despesaSalva, error } = await _supabase.from('despesas').insert([despesaBase]).select().single();
-            if (error) return alert("Erro ao salvar despesa: " + error.message);
-
-            const periodoInicial = obterPeriodoSelecionado();
-            await gerarParcelasBanco(despesaSalva.id, usuarioLogado.id, totalParcelas, valorInformado, formaPagamento, cartaoId, periodoInicial, 1);
+            const tipo = document.getElementById('des-tipo').value;
+            const formaPagamento = document.getElementById('des-forma').value;
             
-            document.getElementById('form-despesa').reset();
-            ajustarCamposDespesa();
-            await atualizarTudo();
+            // Definição inteligente e segura das parcelas totais
+            let totalParcelas = 1;
+            if (tipo === 'fixa') {
+                totalParcelas = 12;
+            } else {
+                const pInput = document.getElementById('des-parcelas').value;
+                totalParcelas = parseInt(pInput);
+                if (isNaN(totalParcelas) || totalParcelas < 1) totalParcelas = 1;
+            }
+
+            const cartaoId = formaPagamento === 'credito' ? document.getElementById('des-cartao').value : null;
+            if (formaPagamento === 'credito' && !cartaoId) {
+                alert("Por favor, selecione um cartão de crédito válido.");
+                return;
+            }
+
+            // Ativa loader visual no botão para travar cliques duplos inadvertidos
+            btnSubmit.innerText = "Salvando...";
+            btnSubmit.disabled = true;
+
+            try {
+                const despesaBase = {
+                    user_id: usuarioLogado.id,
+                    descricao: document.getElementById('des-desc').value.trim() || "Despesa sem descrição",
+                    categoria: document.getElementById('des-cat').value.trim() || "Geral",
+                    tipo: tipo,
+                    forma_pagamento: formaPagamento,
+                    cartao_id: cartaoId,
+                    total_parcelas: totalParcelas
+                };
+
+                const { data: despesaSalva, error: errorDespesa } = await _supabase.from('despesas').insert([despesaBase]).select().single();
+                if (errorDespesa) throw errorDespesa;
+
+                const periodoInicial = obterPeriodoSelecionado();
+                await gerarParcelasBanco(despesaSalva.id, usuarioLogado.id, totalParcelas, valorInformado, formaPagamento, cartaoId, periodoInicial, 1);
+                
+                document.getElementById('form-despesa').reset();
+                ajustarCamposDespesa();
+                await atualizarTudo();
+            } catch (err) {
+                console.error("Erro crítico ao salvar despesa:", err);
+                alert("Não foi possível registrar a despesa. Erro: " + (err.message || "Conexão com o banco falhou"));
+            } finally {
+                // Restaura o estado original do botão
+                btnSubmit.innerText = "Registrar Despesa";
+                btnSubmit.disabled = false;
+            }
         }
 
         async function gerarParcelasBanco(despesaId, userId, qtdMeses, valor, formaPagamento, cartaoId, periodoPartida, numeroParcelaInicial = 1) {
+            if (!_supabase) return;
             const parcelasParaInserir = [];
             let [ano, mes] = periodoPartida.split('-').map(Number);
 
@@ -415,7 +475,8 @@
                 mes++;
                 if (mes > 12) { mes = 1; ano++; }
             }
-            await _supabase.from('parcelas_despesas').insert(parcelasParaInserir);
+            const { error } = await _supabase.from('parcelas_despesas').insert(parcelasParaInserir);
+            if (error) throw error;
         }
 
         function abrirModalEdicao(id, valorAtual, tipoTabela) {
@@ -446,14 +507,17 @@
             }, 10);
 
             document.getElementById('modal-edit-btn-salvar').onclick = async function() {
+                if (!_supabase) return;
                 const novoValor = parseFloat(input.value);
                 if (isNaN(novoValor) || novoValor <= 0) return alert("Insira um valor válido.");
                 
-                const { error } = await _supabase.from(itemSendoEditado.tipoTabela).update({ valor: novoValor }).eq('id', itemSendoEditado.id);
-                if (error) alert("Falha na atualização: " + error.message);
-                else {
+                try {
+                    const { error } = await _supabase.from(itemSendoEditado.tipoTabela).update({ valor: novoValor }).eq('id', itemSendoEditado.id);
+                    if (error) throw error;
                     fecharModalEdicao();
                     await atualizarTudo();
+                } catch(e) {
+                    alert("Erro ao editar.");
                 }
             };
         }
@@ -467,20 +531,24 @@
         }
 
         async function renovarDespesaFixa(despesaId, ultimaParcelaNum, ultimoPeriodo, valor, forma, cartaoId) {
-            if (!confirm("Deseja renovar essa despesa fixa por mais 12 meses?")) return;
+            if (!confirm("Deseja renovar essa despesa fixa por mais 12 meses?") || !_supabase) return;
             if (!usuarioLogado) return;
             
-            let [ano, mes] = ultimoPeriodo.split('-').map(Number);
-            mes++;
-            if (mes > 12) { mes = 1; ano++; }
-            const proximoPeriodo = `${ano}-${String(mes).padStart(2, '0')}`;
+            try {
+                let [ano, mes] = ultimoPeriodo.split('-').map(Number);
+                mes++;
+                if (mes > 12) { mes = 1; ano++; }
+                const proximoPeriodo = `${ano}-${String(mes).padStart(2, '0')}`;
 
-            const novoTotal = parseInt(ultimaParcelaNum) + 12;
-            await _supabase.from('despesas').update({ total_parcelas: novoTotal }).eq('id', despesaId);
-            await gerarParcelasBanco(despesaId, usuarioLogado.id, 12, parseFloat(valor), forma, cartaoId, proximoPeriodo, parseInt(ultimaParcelaNum) + 1);
-            
-            alert("Despesa fixa estendida com sucesso por mais 12 meses!");
-            await atualizarTudo();
+                const novoTotal = parseInt(ultimaParcelaNum) + 12;
+                await _supabase.from('despesas').update({ total_parcelas: novoTotal }).eq('id', despesaId);
+                await gerarParcelasBanco(despesaId, usuarioLogado.id, 12, parseFloat(valor), forma, cartaoId, proximoPeriodo, parseInt(ultimaParcelaNum) + 1);
+                
+                alert("Despesa fixa estendida com sucesso por mais 12 meses!");
+                await atualizarTudo();
+            } catch (err) {
+                alert("Erro ao renovar.");
+            }
         }
 
         function tentarExcluirItem(id, parentId, tagGrupo, tipo, totalParcelas = 1) {
@@ -509,6 +577,7 @@
         }
 
         async function ejecutarExclusaoDefinitiva(apagarTudo) {
+            if (!_supabase) return;
             fecharModalExclusao();
             try {
                 if (itemSendoExcluido.tipo === 'receita_unica' || itemSendoExcluido.tipo === 'receita_recorrente') {
@@ -536,86 +605,90 @@
         document.getElementById('btn-delete-all').onclick = () => ejecutarExclusaoDefinitiva(true);
 
         async function atualizarTudo() {
-            if (!usuarioLogado) return;
+            if (!usuarioLogado || !_supabase) return;
             const periodo = obterPeriodoSelecionado();
 
-            const { data: receitas } = await _supabase.from('receitas')
-                .select('*')
-                .eq('periodo', periodo)
-                .eq('user_id', usuarioLogado.id);
+            try {
+                const { data: receitas } = await _supabase.from('receitas')
+                    .select('*')
+                    .eq('periodo', periodo)
+                    .eq('user_id', usuarioLogado.id);
+                    
+                let tReceitas = 0;
+                const containerReceitas = document.getElementById('container-lista-receitas');
+                containerReceitas.innerHTML = '';
                 
-            let tReceitas = 0;
-            const containerReceitas = document.getElementById('container-lista-receitas');
-            containerReceitas.innerHTML = '';
-            
-            (receitas || []).forEach(r => {
-                const valor = parseFloat(r.valor);
-                tReceitas += valor;
-                
-                const matchLote = r.descricao.match(/\[(LOTE-\d+)\]/);
-                const tagGrupoLimpa = matchLote ? matchLote[1] : '';
-                const tipoRec = tagGrupoLimpa ? 'receita_recorrente' : 'receita_unica';
-                
-                let descricaoExibicao = r.descricao.replace(/\s*\[LOTE-\d+\]/, '').trim();
-                
-                containerReceitas.innerHTML += `
-                    <div class="bg-slate-900/40 md:bg-transparent border border-slate-800/60 md:border-none rounded-xl p-3 md:p-0 md:py-3 flex flex-col md:flex-row justify-between md:items-center gap-2 md:gap-4 border-b md:border-b border-slate-800/40">
-                        <div class="flex-1">
-                            <span class="font-semibold text-slate-100 text-sm md:text-xs">${descricaoExibicao}</span>
-                            <span class="text-[11px] text-slate-500 block mt-0.5">Categoria: ${r.categoria}</span>
-                        </div>
-                        <div class="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-1.5 pt-2 md:pt-0 border-t border-slate-800/30 md:border-none">
-                            <span class="font-bold text-emerald-400 text-sm md:text-xs">+ R$ ${valor.toFixed(2)}</span>
-                            <div class="flex gap-3 text-xs md:text-[10px] font-medium">
-                                <button onclick="abrirModalEdicao('${r.id}', ${valor}, 'receitas')" class="text-indigo-400 hover:text-indigo-300 py-1">Editar R$</button>
-                                <button onclick="tentarExcluirItem('${r.id}', null, '${tagGrupoLimpa}', '${tipoRec}', 1)" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
+                (receitas || []).forEach(r => {
+                    const valor = parseFloat(r.valor);
+                    tReceitas += valor;
+                    
+                    const matchLote = r.descricao.match(/\[(LOTE-\d+)\]/);
+                    const tagGrupoLimpa = matchLote ? matchLote[1] : '';
+                    const tipoRec = tagGrupoLimpa ? 'receita_recorrente' : 'receita_unica';
+                    
+                    let descricaoExibicao = r.descricao.replace(/\s*\[LOTE-\d+\]/, '').trim();
+                    
+                    containerReceitas.innerHTML += `
+                        <div class="bg-slate-900/40 md:bg-transparent border border-slate-800/60 md:border-none rounded-xl p-3 md:p-0 md:py-3 flex flex-col md:flex-row justify-between md:items-center gap-2 md:gap-4 border-b md:border-b border-slate-800/40">
+                            <div class="flex-1">
+                                <span class="font-semibold text-slate-100 text-sm md:text-xs">${descricaoExibicao}</span>
+                                <span class="text-[11px] text-slate-500 block mt-0.5">Categoria: ${r.categoria}</span>
+                            </div>
+                            <div class="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-1.5 pt-2 md:pt-0 border-t border-slate-800/30 md:border-none">
+                                <span class="font-bold text-emerald-400 text-sm md:text-xs">+ R$ ${valor.toFixed(2)}</span>
+                                <div class="flex gap-3 text-xs md:text-[10px] font-medium">
+                                    <button onclick="abrirModalEdicao('${r.id}', ${valor}, 'receitas')" class="text-indigo-400 hover:text-indigo-300 py-1">Editar R$</button>
+                                    <button onclick="tentarExcluirItem('${r.id}', null, '${tagGrupoLimpa}', '${tipoRec}', 1)" class="text-rose-500 hover:text-rose-400 py-1">Excluir</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
-            });
+                    `;
+                });
 
-            const { data: parcelas } = await _supabase.from('parcelas_despesas')
-                .select('*, despesas(*)')
-                .eq('periodo', periodo)
-                .eq('user_id', usuarioLogado.id);
-                
-            let tFixas = 0;
-            let tVariaveis = 0;
-            const containerSaidas = document.getElementById('container-lista-despesas');
-            containerSaidas.innerHTML = '';
-
-            if (parcelas) {
-                for (const p of parcelas) {
-                    if (!p.despesas) continue;
-                    const valor = parseFloat(p.valor);
+                const { data: parcelas } = await _supabase.from('parcelas_despesas')
+                    .select('*, despesas(*)')
+                    .eq('periodo', periodo)
+                    .eq('user_id', usuarioLogado.id);
                     
-                    if (p.despesas.tipo === 'fixa') tFixas += valor;
-                    else tVariaveis += valor;
+                let tFixas = 0;
+                let tVariaveis = 0;
+                const containerSaidas = document.getElementById('container-lista-despesas');
+                containerSaidas.innerHTML = '';
 
-                    let eUltimoMes = false;
-                    if (p.despesas.tipo === 'fixa') {
-                        const { data: tParcelas } = await _supabase.from('parcelas_despesas')
-                            .select('periodo')
-                            .eq('despesa_id', p.despesa_id)
-                            .order('periodo', { ascending: false })
-                            .limit(1);
+                if (parcelas) {
+                    for (const p of parcelas) {
+                        if (!p.despesas) continue;
+                        const valor = parseFloat(p.valor);
                         
-                        if (tParcelas && tParcelas[0]?.periodo === periodo) eUltimoMes = true;
+                        if (p.despesas.tipo === 'fixa') tFixas += valor;
+                        else tVariaveis += valor;
+
+                        let eUltimoMes = false;
+                        if (p.despesas.tipo === 'fixa') {
+                            const { data: tParcelas } = await _supabase.from('parcelas_despesas')
+                                .select('periodo')
+                                .eq('despesa_id', p.despesa_id)
+                                .order('periodo', { ascending: false })
+                                .limit(1);
+                            
+                            if (tParcelas && tParcelas[0]?.periodo === periodo) eUltimoMes = true;
+                        }
+
+                        exibirLinhaDespesaMobileFriendly(containerSaidas, p, p.despesas, eUltimoMes);
                     }
-
-                    exibirLinhaDespesaMobileFriendly(containerSaidas, p, p.despesas, eUltimoMes);
                 }
-            }
 
-            document.getElementById('card-receitas').innerText = `R$ ${tReceitas.toFixed(2)}`;
-            document.getElementById('card-fixas').innerText = `R$ ${tFixas.toFixed(2)}`;
-            document.getElementById('card-variaveis').innerText = `R$ ${tVariaveis.toFixed(2)}`;
-            
-            const saldoGeral = tReceitas - (tFixas + tVariaveis);
-            const cardSaldo = document.getElementById('card-saldo');
-            cardSaldo.innerText = `R$ ${saldoGeral.toFixed(2)}`;
-            cardSaldo.className = `text-lg md:text-2xl font-bold mt-1 md:mt-2 ${saldoGeral < 0 ? 'text-rose-400' : 'text-emerald-400'}`;
+                document.getElementById('card-receitas').innerText = `R$ ${tReceitas.toFixed(2)}`;
+                document.getElementById('card-fixas').innerText = `R$ ${tFixas.toFixed(2)}`;
+                document.getElementById('card-variaveis').innerText = `R$ ${tVariaveis.toFixed(2)}`;
+                
+                const saldoGeral = tReceitas - (tFixas + tVariaveis);
+                const cardSaldo = document.getElementById('card-saldo');
+                cardSaldo.innerText = `R$ ${saldoGeral.toFixed(2)}`;
+                cardSaldo.className = `text-lg md:text-2xl font-bold mt-1 md:mt-2 ${saldoGeral < 0 ? 'text-rose-400' : 'text-emerald-400'}`;
+            } catch (err) {
+                console.error("Erro na atualização visual da tela:", err);
+            }
         }
 
         function exibirLinhaDespesaMobileFriendly(container, parcela, despesa, eUltimoMes) {
@@ -678,26 +751,30 @@
 
         async function handleAuth(event) {
             event.preventDefault();
+            if (!_supabase) return;
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value;
-            if (modoAuth === 'login') {
-                const { error } = await _supabase.auth.signInWithPassword({ email, password });
-                if (error) alert("Erro ao fazer login: " + error.message);
-            } else {
-                const nome = document.getElementById('auth-nome').value.trim();
-                const sobrenome = document.getElementById('auth-sobrenome').value.trim();
-                if(!nome || !sobrenome) return alert("Preencha o nome completo.");
-                const { data, error } = await _supabase.auth.signUp({ email, password, options: { data: { full_name: `${nome} ${sobrenome}` } } });
-                if (error) alert(error.message);
-                else {
+            try {
+                if (modoAuth === 'login') {
+                    const { error } = await _supabase.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                } else {
+                    const nome = document.getElementById('auth-nome').value.trim();
+                    const sobrenome = document.getElementById('auth-sobrenome').value.trim();
+                    if(!nome || !sobrenome) return alert("Preencha o nome completo.");
+                    const { data, error } = await _supabase.auth.signUp({ email, password, options: { data: { full_name: `${nome} ${sobrenome}` } } });
+                    if (error) throw error;
                     if(data?.user) await _supabase.from('usuarios').insert([{ id: data.user.id, nome: `${nome} ${sobrenome}` }]);
                     alert("Conta criada!");
                     mudarAbaAuth('login');
                 }
+            } catch(err) {
+                alert("Erro de autenticação: " + err.message);
             }
         }
 
         async function logout() {
+            if (!_supabase) return;
             try { 
                 await _supabase.auth.signOut(); 
             } catch(e) {
@@ -722,8 +799,11 @@
             document.body.className = "bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 min-h-screen text-slate-100 font-sans flex items-center justify-center p-4";
         }
         async function buscarNomeUsuario(userId) {
-            const { data } = await _supabase.from('usuarios').select('nome').eq('id', userId).single();
-            if (data) document.getElementById('user-display-name').innerText = data.nome;
+            if (!_supabase) return;
+            try {
+                const { data } = await _supabase.from('usuarios').select('nome').eq('id', userId).single();
+                if (data) document.getElementById('user-display-name').innerText = data.nome;
+            } catch(e) {}
         }
     </script>
 </body>
